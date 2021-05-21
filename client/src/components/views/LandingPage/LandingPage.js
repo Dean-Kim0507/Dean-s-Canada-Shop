@@ -171,7 +171,7 @@ function LandingPage(props) {
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <img style={{ minWidth: '100px', width: '100px', height: '80px', paddingBottom: '1.5rem', }}
                         src={`${window.location.href}uploads/icon/dh_icon.gif`} />
-                    <h1 style={{ marginLeft: '-1rem' }}>Dean's Canada Shop</h1>
+                    <h1 style={{ marginLeft: '-1rem' }}>11Dean's Canada Shop</h1>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', margin: '1rem auto' }}>
                     <SearchFeature
