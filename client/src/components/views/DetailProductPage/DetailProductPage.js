@@ -15,7 +15,7 @@ function DetailProductPage(props) {
 
             axios.get(`/api/product/products_by_id?id=${productId}&type=single&userid=${props.user.userData._id}`)
                 .then(response => {
-                    setProduct(response.data[0])
+                    setProduct(response.data)
                 })
                 .catch(err => alert(err))
         }
@@ -23,30 +23,31 @@ function DetailProductPage(props) {
 
 
     return (
+
         <div style={{ width: '100%', padding: '3rem 4rem' }}>
+            { Product &&
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <h1>{Product.title}</h1>
+                    </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <h1>{Product.title}</h1>
-            </div>
+                    <br />
 
-            <br />
-
-            <Row gutter={[16, 16]} >
-                <Col lg={12} sm={24}>
-                    {/* ProductImage */}
-                    <ProductImage detail={Product} />
-                </Col>
-                <Col lg={12} sm={24}>
-                    {/* ProductInfo */}
-                    <ProductInfo detail={Product} />
-                </Col>
-            </Row>
-
-
-
-
+                    <Row gutter={[16, 16]} >
+                        <Col lg={12} sm={24}>
+                            {/* ProductImage */}
+                            <ProductImage detail={Product} />
+                        </Col>
+                        <Col lg={12} sm={24}>
+                            {/* ProductInfo */}
+                            <ProductInfo detail={Product} />
+                        </Col>
+                    </Row>
+                </div>
+            }
 
         </div>
+
     )
 }
 

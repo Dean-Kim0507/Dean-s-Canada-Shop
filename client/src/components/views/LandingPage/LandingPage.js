@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { FaCode } from "react-icons/fa";
 import axios from "axios";
-import { Icon, Col, Card, Row, Carousel } from 'antd';
+import { Icon, Col, Card, Row } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import ImageSlider from '../../utils/ImageSlider';
 import Checkbox from './Sections/CheckBox';
 import Radiobox from './Sections/RadioBox';
 import SearchFeature from './Sections/SearchFeature';
 import { continents, price } from './Sections/Datas';
+import Links from './Sections/Links'
 
 function LandingPage(props) {
 
@@ -39,7 +39,7 @@ function LandingPage(props) {
         axios.post('/api/product/products', body)
             .then(response => {
                 if (response.data.success) {
-                    if (body.viewed) {
+                    if (response.data.recentProductInfo) {
                         setRecentViewedProducts(response.data.recentProductInfo)
                     }
                     if (body.loadMore) {
@@ -48,6 +48,7 @@ function LandingPage(props) {
                         setRecentProducts(response.data.productInfo)
                     }
                     setPostSize(response.data.postSize)
+                    console.log(response.data.productInfo)
                 } else {
                     alert(" Fail to get Recently Posts")
                 }
@@ -107,10 +108,8 @@ function LandingPage(props) {
             filters: filters,
             viewed: false
         }
-
         getProducts(body)
         setSkip(0)
-
     }
 
 
@@ -159,20 +158,20 @@ function LandingPage(props) {
         else setShowFilters(false)
     }
 
-
+    console.log('window.location.href: ', window.location.href)
 
     return (
         <div style={{ width: '75%', margin: '3rem auto' }}>
 
-
-
             {/* Search */}
-
             < Row align={'top'}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Links />
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <img style={{ minWidth: '100px', width: '100px', height: '80px', paddingBottom: '1.5rem', }}
-                        src={'http://localhost:5000/uploads/icon/dh_icon.gif'} />
-                    <h1 style={{ marginLeft: '-1rem' }}>SECOND HAND SHOP</h1>
+                        src={`${window.location.href}uploads/icon/dh_icon.gif`} />
+                    <h1 style={{ marginLeft: '-1rem' }}>Dean's Canada Shop</h1>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', margin: '1rem auto' }}>
                     <SearchFeature
@@ -181,12 +180,7 @@ function LandingPage(props) {
                 </div>
             </Row>
 
-
-
-
-
             {/* Filter */}
-
             < Row gutter={[16, 16]}>
 
                 <Col lg={12} xs={24}>
@@ -194,7 +188,6 @@ function LandingPage(props) {
                     {
                         ShowFilters &&
                         <Checkbox list={continents} handleFilters={filters => handleFilters(filters, "continents")} />
-
                     }
                 </Col>
                 <Col lg={12} xs={24}>
@@ -204,7 +197,6 @@ function LandingPage(props) {
                         <Radiobox list={price} handleFilters={filters => handleFilters(filters, "price")} />
                     }
                 </Col>
-
             </Row>
 
             {/** Recently viewed posts */}
@@ -221,7 +213,7 @@ function LandingPage(props) {
                 null
             }
             {/* Recently Posted */}
-            <div style={{ textAlign: 'left' }}>
+            <div style={{ textAlign: 'left', marginTop: '2rem' }}>
                 <h2>Recently Posted <Icon type="time" /> </h2>
             </div>
             <Row gutter={[16, 16]} >

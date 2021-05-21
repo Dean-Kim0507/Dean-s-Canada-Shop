@@ -1,17 +1,17 @@
 import React, { useState } from 'react'
-import { Typography, Button, Form, Input } from 'antd';
+import { Form, Input, message, Button } from 'antd';
 import FileUpload from '../../utils/FileUpload';
 import Axios from 'axios';
 const { TextArea } = Input;
 
-const Continents = [
-    { key: 1, value: "Africa" },
-    { key: 2, value: "Europe" },
-    { key: 3, value: "Asia" },
-    { key: 4, value: "North America" },
-    { key: 5, value: "South America" },
-    { key: 6, value: "Australia" },
-    { key: 7, value: "Antarctica" }
+const Sorts = [
+    { key: 1, value: "Clothes & Shoes" },
+    { key: 2, value: "Supplements" },
+    { key: 3, value: "Beauty" },
+    { key: 4, value: "Baby" },
+    { key: 5, value: "Appliances" },
+    { key: 6, value: "Home Products" },
+    { key: 7, value: "Pet Supplies" }
 ]
 
 function UploadProductPage(props) {
@@ -19,7 +19,7 @@ function UploadProductPage(props) {
     const [Title, setTitle] = useState("")
     const [Description, setDescription] = useState("")
     const [Price, setPrice] = useState(0)
-    const [Continent, setContinent] = useState(1)
+    const [Sort, setSort] = useState(1)
     const [Images, setImages] = useState([])
 
     const titleChangeHandler = (event) => {
@@ -34,8 +34,8 @@ function UploadProductPage(props) {
         setPrice(event.currentTarget.value)
     }
 
-    const continentChangeHandler = (event) => {
-        setContinent(event.currentTarget.value)
+    const SortChangeHandler = (event) => {
+        setSort(event.currentTarget.value)
     }
 
     const updateImages = (newImages) => {
@@ -45,8 +45,8 @@ function UploadProductPage(props) {
     const submitHandler = (event) => {
         event.preventDefault();
 
-        if (!Title || !Description || !Price || !Continent || Images.length === 0) {
-            return alert(" 모든 값을 넣어주셔야 합니다.")
+        if (!Title || !Description || !Price || !Sort || Images.length === 0) {
+            return message.error('No blank is allowed');
         }
 
 
@@ -59,16 +59,18 @@ function UploadProductPage(props) {
             description: Description,
             price: Price,
             images: Images,
-            continents: Continent
+            sort: Sort,
+            type: 'NewProduct'
         }
+        console.log(body)
 
         Axios.post('/api/product', body)
             .then(response => {
                 if (response.data.success) {
-                    alert('상품 업로드에 성공 했습니다.')
+                    message.success('Upload success');
                     props.history.push('/')
                 } else {
-                    alert('상품 업로드에 실패 했습니다.')
+                    message.error('Upload Fail');
                 }
             })
     }
@@ -77,7 +79,7 @@ function UploadProductPage(props) {
     return (
         <div style={{ maxWidth: '700px', margin: '2rem auto' }}>
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                <h2> 여행 상품 업로드</h2>
+                <h2> Upload</h2>
             </div>
 
             <Form onSubmit={submitHandler}>
@@ -86,28 +88,30 @@ function UploadProductPage(props) {
 
                 <br />
                 <br />
-                <label>이름</label>
+                <label>Title</label>
                 <Input onChange={titleChangeHandler} value={Title} />
                 <br />
                 <br />
-                <label>설명</label>
+                <label>Description</label>
                 <TextArea onChange={descriptionChangeHandler} value={Description} />
                 <br />
                 <br />
-                <label>가격($)</label>
+                <label>Price($)</label>
                 <Input type="number" onChange={priceChangeHandler} value={Price} />
                 <br />
                 <br />
-                <select onChange={continentChangeHandler} value={Continent}>
-                    {Continents.map(item => (
+                <label>Type of Product</label>
+                <br />
+                <select onChange={SortChangeHandler} value={Sort}>
+                    {Sorts.map(item => (
                         <option key={item.key} value={item.key}> {item.value}</option>
                     ))}
                 </select>
                 <br />
                 <br />
-                <button type="submit">
-                    확인
-                </button>
+                <Button onClick={submitHandler} type="submit">
+                    Submit
+                </Button>
             </Form>
 
 

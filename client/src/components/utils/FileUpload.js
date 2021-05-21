@@ -24,7 +24,7 @@ function FileUpload(props) {
 
 
                 } else {
-                    alert('파일을 저장하는데 실패했습니다.')
+                    alert('Fail to store the file.')
                 }
             })
     }
@@ -62,7 +62,7 @@ function FileUpload(props) {
                 {Images.map((image, index) => (
                     <div onClick={() => deleteHandler(image)} key={index}>
                         <img style={{ minWidth: '300px', width: '300px', height: '240px' }}
-                            src={`http://localhost:5000/${image}`}
+                            src={`${window.location.href}${image}`}
                         />
                     </div>
                 ))}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux';
 import { getCartItems, removeCartItem, onSuccessBuy } from '../../../_actions/user_actions';
 import UserCardBlock from './Sections/UserCardBlock';
-import { Empty, Result } from 'antd';
+import { Empty, Result, Alert, message } from 'antd';
 import Paypal from '../../utils/Paypal';
 
 function CartPage(props) {
@@ -13,7 +13,6 @@ function CartPage(props) {
     const [ShowSuccess, setShowSuccess] = useState(false)
 
     useEffect(() => {
-
         let cartItems = []
         //리덕스 User state안에 cart 안에 상품이 들어있는지 확인 
         if (props.user.userData && props.user.userData.cart) {
@@ -25,7 +24,6 @@ function CartPage(props) {
                     .then(response => { calculateTotal(response.payload) })
             }
         }
-        console.log(props.user)
     }, [props.user.userData])
 
 
@@ -46,13 +44,12 @@ function CartPage(props) {
 
         dispatch(removeCartItem(productId))
             .then(response => {
-
                 if (response.payload.productInfo.length <= 0) {
                     setShowTotal(false)
+                    message.success('Delete Success');
                 }
-
+                else message.error('Delete Fail')
             })
-
     }
 
     const transactionSuccess = (data) => {
@@ -68,12 +65,18 @@ function CartPage(props) {
             })
     }
 
-
-
     return (
         <div style={{ width: '85%', margin: '3rem auto' }}>
             <h1>My Cart</h1>
-
+            <br />
+            <Alert
+                message="Warning"
+                description='This is not a real store, Do not pay for anything! Paypal Test id: sb-v7tk76099088@personal.example.com, Password: Testpaypal8* '
+                type="warning"
+                showIcon
+                closable
+            />
+            <br />
             <div>
                 <UserCardBlock products={props.user.cartDetail} removeItem={removeFromCart} />
             </div>
@@ -93,7 +96,6 @@ function CartPage(props) {
                         <Empty description={false} />
                     </>
             }
-
 
             {ShowTotal &&
                 <Paypal

@@ -1,8 +1,10 @@
 const express = require('express');
+const { now } = require('moment');
 const router = express.Router();
 const multer = require('multer');
 const { Product } = require("../models/Product");
 const { User } = require("../models/User");
+const { auth } = require('../middleware/auth');
 
 //=================================
 //             Product
@@ -35,22 +37,44 @@ router.post('/image', (req, res) => {
 
 
 
-router.post('/', (req, res) => {
+router.post('/', auth, (req, res) => {
 
-    //받아온 정보들을 DB에 넣어 준다.
-    const product = new Product(req.body)
+    let type = req.body.type;
+    if (type == 'NewProduct') {
+        //Just Put all info into the DB
+        const product = new Product(req.body)
 
-    product.save((err) => {
-        if (err) return res.status(400).json({ success: false, err })
-        return res.status(200).json({ success: true })
-    })
+        product.save((err) => {
+            if (err) return res.status(400).json({ success: false, err })
+            return res.status(200).json({ success: true })
+        })
+    } else {
+        Product.findOneAndUpdate(
+            { _id: req.body.productId },
+            {
+                $push: {
+                    feedback: {
+                        writer: req.user,
+                        rating: req.body.stars,
+                        text: req.body.feedback,
+                        date: Date.now()
+                    }
+                }
+            },
+            { new: true },
+            (err, product) => {
+                if (err) return res.status(400).json({ success: false, err })
+                if (product) res.status(200).send({ success: true, })
+            }
+
+        )
+    }
+
 
 })
 
 
-
 router.post('/products', (req, res) => {
-
 
     let order = req.body.order ? req.body.order : "desc";
     let sortBy = req.body.sortBy ? req.body.sortBy : "_id";
@@ -66,7 +90,6 @@ router.post('/products', (req, res) => {
     for (let key in req.body.filters) {
         if (req.body.filters[key].length > 0) {
 
-            console.log('key', key)
             //Object[] ->[]안에는 변수가 들어가고 이로인해 Object 안에 있는 property 호출
             //ex. args = { price: { '$gte': 200, '$lte': 249 } }
             if (key === "price") {
@@ -79,12 +102,11 @@ router.post('/products', (req, res) => {
             } else {
                 findArgs[key] = req.body.filters[key];
             }
-            console.log('findArgs ', findArgs)
         }
     }
 
-
     if (term) {
+        //Search Function
         Product.find(findArgs)
             .find({ $text: { $search: term } }) //text 에 있는 search 기능
             .populate("writer") //writer collection 도 가져오기
@@ -98,8 +120,8 @@ router.post('/products', (req, res) => {
                     postSize: productInfo.length
                 })
             })
+        //Provide recent viewed posts and recent posts
     } else if (viewed) {
-        console.log('user id: ', req.body.user)
         Product.find(findArgs)
             .populate("writer")
             .sort([[sortBy, order]])
@@ -107,28 +129,62 @@ router.post('/products', (req, res) => {
             .limit(limit)
             .exec((err, productInfo) => {
                 if (err) return res.status(400).json({ success: false, err })
+                if (req.body.user._id) {
+                    // To get rescent views
+                    User.findOne({ _id: req.body.user._id })
+                        .exec((err, userInfo) => {
+                            if (err) return res.status(400).json({ success: false, err })
 
-                User.findOne({ _id: req.body.user._id }
-                    , (err, userInfo) => {
-                        if (err) return res.status(400).json({ success: false, err })
+                            // To search recently views, make a parameter
+                            let recentlyViews = [];
 
-                        Product.find({ _id: userInfo.recentlyViewed })
-                            .populate("writer")
-                            .sort([[sortBy, order]])
-                            .skip(0)
-                            .limit(4)
-                            .exec((err, recentProductInfo) => {
-                                if (err) return res.status(400).json({ success: false, err })
-                                return res.status(200).json({
-                                    success: true,
-                                    productInfo,
-                                    recentProductInfo,
-                                    postSize: productInfo.length
-                                })
+                            //Make parameter to retrieve recently views
+                            recentlyViews = userInfo.recentlyViewed.map(item => {
+                                return item.id
                             })
-                    }
-                )
+
+                            Product.find({ _id: recentlyViews })
+                                .populate("writer")
+                                .skip(0)
+                                .limit(4)
+                                .exec((err, recentProductInfo) => {
+                                    if (err) return res.status(400).json({ success: false, err })
+
+                                    //Add clicked date to recentProductInfo
+                                    recentProductInfo.forEach((posts, index) => {
+                                        userInfo.recentlyViewed.forEach((rp, i) => {
+                                            if (posts._id == rp.id) {
+                                                recentProductInfo[index].date = rp.date
+                                            }
+                                        })
+                                    })
+
+                                    //Accending sorting
+                                    recentProductInfo.sort(function (a, b) {
+                                        return b['date'] - a['date'];
+                                    });
+
+                                    return res.status(200).json({
+                                        success: true,
+                                        productInfo,
+                                        recentProductInfo,
+                                        postSize: productInfo.length
+                                    })
+                                })
+                        }
+                        )
+                }
+                else {
+                    return res.status(200).json({
+                        success: true,
+                        productInfo,
+                        recentProductInfo: null,
+                        postSize: productInfo.length
+                    })
+                }
+
             })
+        //Filters
     } else {
         Product.find(findArgs)
             .populate("writer")
@@ -143,49 +199,100 @@ router.post('/products', (req, res) => {
                 })
             })
     }
-
 })
-
 
 //id=123123123,324234234,324234234  type=array
 router.get('/products_by_id', (req, res) => {
     //When you use post method, use req.body, When use query, use query.
     let type = req.query.type
     let productIds = req.query.id
-    let userId = req.query.userid;
+
 
     if (type === "array") {
-        //id=123123123,324234234,324234234 이거를 
-        //productIds = ['123123123', '324234234', '324234234'] 이런식으로 바꿔주기
+        //id=123123123,324234234,324234234 -> productIds = ['123123123', '324234234', '324234234'] 
+        //Products information in Cart page
         let ids = req.query.id.split(',')
         productIds = ids.map(item => {
             return item
         })
-
+        //When post several products to the client
+        Product.find({ _id: { $in: productIds } })
+            .populate('writer')
+            .exec((err, product) => {
+                if (err) return res.status(200).json({ success: false, err })
+                return res.status(200).send(product)
+            })
     }
-
-    //productId를 이용해서 DB에서  productId와 같은 상품의 정보를 가져온다.
-
-    Product.find({ _id: { $in: productIds } }) //$in -> array where
-        .populate('writer')
-        .exec((err, product) => {
-            if (err) return res.status(400).send(err)
-            User.findOneAndUpdate(
-                { _id: req.query.userid },
-                { $addToSet: { 'recentlyViewed': productIds } },
-                { new: true },
-                (err, user) => {
-                    if (err) return res.status(400).json({ success: false, err })
-                    return res.status(200).send(product)
+    //A product information in Feedback page
+    else if (type === "feedback") {
+        Product.find({ _id: productIds })
+            .populate('writer')
+            .exec((err, product) => {
+                if (err) return res.status(200).json({ success: false, err })
+                return res.status(200).send(product)
+            })
+    }
+    //A product information in detail page
+    else {
+        Product.findOneAndUpdate(
+            { _id: { $in: productIds } },
+            {
+                $inc: {
+                    'views': 1
                 }
-            )
+            },
+            { new: true },
+            (err, product) => {
+                if (err) return res.status(400).send(err)
+                if (type == 'single') {
+                    if (req.query.userid != 'undefined') {
+                        User.findOne({ _id: req.query.userid },
+                            (err, userInfo) => {
+                                let duplicate = false;
+                                userInfo.recentlyViewed.forEach((item) => {
+                                    if (item.id === productIds) {
+                                        duplicate = true;
+                                    }
+                                })
+                                if (duplicate) {
+                                    //If user click the post thet user has seen, the date will just be updated
+                                    User.findOneAndUpdate(
+                                        { _id: req.query.userid, 'recentlyViewed.id': productIds },
+                                        {
+                                            $set: {
+                                                'recentlyViewed.$.date': Date.now()
+                                            }
+                                        },
+                                        { new: true },
+                                        (err, userInfo) => {
+                                            if (err) return res.status(200).json({ success: false, err })
+                                            res.status(200).send(product)
+                                        })
+                                }
+                                else {
+                                    //If user click the post, 
+                                    User.findOneAndUpdate(
+                                        { _id: req.query.userid },
+                                        {
+                                            $push: {
+                                                'recentlyViewed': { id: productIds, date: Date.now() }
+                                            }
+                                        },
+                                        { new: true },
+                                        (err, userInfo) => {
+                                            if (err) return res.status(200).json({ success: false, err })
+                                            res.status(200).send(product)
+                                        })
+                                }
+                            })
+                    }
+                    else res.status(200).send(product)
+                }
+                else res.status(200).send(product)
 
-        })
+            }).populate('writer')
+    }
 })
-
-
-
-
 
 
 module.exports = router;

@@ -1,26 +1,48 @@
 import React from 'react'
-import { Button, Descriptions } from 'antd';
+import { Button, Descriptions, message, Rate } from 'antd';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../../../../_actions/user_actions';
+import ShowFeedback from './ShowFeedback';
+
 function ProductInfo(props) {
     const dispatch = useDispatch();
 
+    const success = () => {
+        message.success('Added to Cart');
+    };
 
     const clickHandler = () => {
         //필요한 정보를 Cart 필드에다가 넣어 준다.
         dispatch(addToCart(props.detail._id))
+        success()
+    }
+
+    const rating = () => {
+        let rating = 0;
+        const feedback = props.detail.feedback;
+        console.log(feedback)
+        feedback.forEach((item) => (
+
+            rating += item.rating
+        ))
+
+        return rating / feedback.length;
 
     }
 
     return (
         <div>
-            <Descriptions title="Product Info">
-                <Descriptions.Item label="Price">{props.detail.price}</Descriptions.Item>
-                <Descriptions.Item label="Sold">{props.detail.sold}</Descriptions.Item>
-                <Descriptions.Item label="View">{props.detail.views}</Descriptions.Item>
-                <Descriptions.Item label="Description">{props.detail.description}</Descriptions.Item>
-            </Descriptions>
-
+            {props.detail.feedback &&
+                <div>
+                    <Descriptions title="Product Info" size={'middle'}>
+                        <Descriptions.Item label="Price">{'$' + props.detail.price}</Descriptions.Item>
+                        <Descriptions.Item label="Sold">{props.detail.sold}</Descriptions.Item>
+                        <Descriptions.Item label="View">{props.detail.views}</Descriptions.Item>
+                        <Descriptions.Item label="Description">{props.detail.description}</Descriptions.Item>
+                    </Descriptions>
+                    <strong>Rating: </strong><Rate disabled defaultValue={rating()} />
+                </div>
+            }
             <br />
             <br />
             <br />
@@ -29,9 +51,12 @@ function ProductInfo(props) {
                     Add to Cart
                 </Button>
             </div>
+            <br />
+            <br />
+            <ShowFeedback feedback={props.detail.feedback} />
 
 
-        </div>
+        </div >
     )
 }
 
