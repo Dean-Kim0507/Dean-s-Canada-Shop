@@ -12,8 +12,8 @@ function ProductImage(props) {
 
             props.detail.images.map(item => {
                 images.push({
-                    original: `${window.location.href}${item}`,
-                    thumbnail: `${window.location.href}${item}`
+                    original: `${item}`,
+                    thumbnail: `${item}`
                 })
             })
             setImages(images)

@@ -49,11 +49,8 @@ function UploadProductPage(props) {
             return message.error('No blank is allowed');
         }
 
-
-        //서버에 채운 값들을 request로 보낸다.
-
         const body = {
-            //로그인 된 사람의 ID 
+            //user info
             writer: props.user.userData._id,
             title: Title,
             description: Description,

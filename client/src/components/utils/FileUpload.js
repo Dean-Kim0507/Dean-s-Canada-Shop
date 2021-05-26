@@ -31,12 +31,22 @@ function FileUpload(props) {
 
 
     const deleteHandler = (image) => {
-        const currentIndex = Images.indexOf(image);
-        let newImages = [...Images]
-        newImages.splice(currentIndex, 1)
-        setImages(newImages)
-        props.refreshFunction(newImages)
 
+        const img = {
+            img: image
+        }
+        axios.post('/api/product/deleteimg', img)
+            .then(response => {
+                if (response.data.success) {
+                    const currentIndex = Images.indexOf(image);
+                    let newImages = [...Images]
+                    newImages.splice(currentIndex, 1)
+                    setImages(newImages)
+                    props.refreshFunction(newImages)
+                } else {
+                    alert('Fail to delete the file.')
+                }
+            })
 
     }
 
@@ -62,7 +72,7 @@ function FileUpload(props) {
                 {Images.map((image, index) => (
                     <div onClick={() => deleteHandler(image)} key={index}>
                         <img style={{ minWidth: '300px', width: '300px', height: '240px' }}
-                            src={`${window.location.href}${image}`}
+                            src={`${image}`}
                         />
                     </div>
                 ))}

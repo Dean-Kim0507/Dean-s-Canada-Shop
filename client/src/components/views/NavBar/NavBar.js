@@ -19,7 +19,7 @@ function NavBar() {
     <nav className="menu" style={{ position: 'fixed', zIndex: 5, width: '100%' }}>
       <div className="menu__logo">
         <a href='/'><img style={{ minWidth: '70px', width: '60px', height: '40px' }}
-          src={`${window.location.href}uploads/icon/dh_icon.gif`} /></a>
+          src={`https://dean-website.s3.ca-central-1.amazonaws.com/icon/dh_icon.gif`} /></a>
       </div>
       <div className="menu__container">
         <div className="menu_left">

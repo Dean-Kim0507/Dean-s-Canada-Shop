@@ -6,7 +6,6 @@ const { Search } = Input;
 function SearchFeature(props) {
 
     const [SearchTerm, setSearchTerm] = useState("")
-    const [ShowAlert, setShowAlert] = useState(false)
 
     const onChangeHandler = (event) => {
         setSearchTerm(event.currentTarget.value)

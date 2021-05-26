@@ -1,5 +1,5 @@
 import React from 'react'
-import { Icon, Col, Card, Row, Carousel } from 'antd';
+import { Carousel } from 'antd';
 
 function ImageSlider(props) {
     return (
@@ -7,8 +7,8 @@ function ImageSlider(props) {
             <Carousel autoplay >
                 {props.images.map((image, index) => (
                     <div key={index}>
-                        <img style={{ width: '100%', height: '150px' }}
-                            src={`${window.location.href}${image}`} />
+                        <img style={{ width: '100%', height: '180px' }}
+                            src={`${image}`} />
                     </div>
                 ))}
             </Carousel>

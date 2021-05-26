@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios from "axios";
-import { Icon, Col, Card, Row } from 'antd';
+import { Icon, Col, Card, Row, Rate } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import ImageSlider from '../../utils/ImageSlider';
 import Checkbox from './Sections/CheckBox';
@@ -8,6 +8,7 @@ import Radiobox from './Sections/RadioBox';
 import SearchFeature from './Sections/SearchFeature';
 import { continents, price } from './Sections/Datas';
 import Links from './Sections/Links'
+import { FunnelPlotOutlined, EyeOutlined, FileSyncOutlined } from '@ant-design/icons';
 
 function LandingPage(props) {
 
@@ -22,6 +23,7 @@ function LandingPage(props) {
     const [SearchTerm, setSearchTerm] = useState("")
     const [ShowFilters, setShowFilters] = useState(false);
     const [RecentViewedProducts, setRecentViewedProducts] = useState([])
+
 
     useEffect(() => {
         if (props.user.userData) {
@@ -48,7 +50,6 @@ function LandingPage(props) {
                         setRecentProducts(response.data.productInfo)
                     }
                     setPostSize(response.data.postSize)
-                    console.log(response.data.productInfo)
                 } else {
                     alert(" Fail to get Recently Posts")
                 }
@@ -70,7 +71,17 @@ function LandingPage(props) {
         getProducts(body)
         setSkip(skip)
     }
+    const rating = (feedback) => {
+        let rating = 0;
 
+        feedback.forEach((item) => (
+
+            rating += item.rating
+        ))
+
+        return rating / feedback.length;
+
+    }
 
     const renderRecentlyPosted = RecentProducts.map((product, index) => {
 
@@ -81,7 +92,9 @@ function LandingPage(props) {
                 <Meta
                     title={product.title}
                     description={`$${product.price}`}
+
                 />
+                <Rate disabled defaultValue={rating(product.feedback)} />
             </Card>
         </Col>
     })
@@ -96,6 +109,7 @@ function LandingPage(props) {
                     title={product.title}
                     description={`$${product.price}`}
                 />
+                <Rate disabled defaultValue={rating(product.feedback)} />
             </Card>
         </Col>
     })
@@ -170,8 +184,8 @@ function LandingPage(props) {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <img style={{ minWidth: '100px', width: '100px', height: '80px', paddingBottom: '1.5rem', }}
-                        src={`${window.location.href}uploads/icon/dh_icon.gif`} />
-                    <h1 style={{ marginLeft: '-1rem' }}>11Dean's Canada Shop</h1>
+                        src={`https://dean-website.s3.ca-central-1.amazonaws.com/icon/dh_icon.gif`} />
+                    <h1 style={{ marginLeft: '-1rem' }}>Dean's Canada Shop</h1>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', margin: '1rem auto' }}>
                     <SearchFeature
@@ -200,10 +214,10 @@ function LandingPage(props) {
             </Row>
 
             {/** Recently viewed posts */}
-            {RecentViewedProducts.length > 0 ?
+            {RecentViewedProducts.length > 0 && !ShowFilters ?
                 <div>
                     <div style={{ textAlign: 'left' }}>
-                        <h2>Recently Viewed Posts <Icon type="time" /> </h2>
+                        <h2> <EyeOutlined /> Recently Viewed Posts <Icon type="time" /> </h2>
                     </div>
                     <Row gutter={[16, 16]} >
                         {renderRecentlyViewed}
@@ -212,10 +226,17 @@ function LandingPage(props) {
                 :
                 null
             }
+
             {/* Recently Posted */}
-            <div style={{ textAlign: 'left', marginTop: '2rem' }}>
-                <h2>Recently Posted <Icon type="time" /> </h2>
-            </div>
+            {ShowFilters ?
+                <div style={{ textAlign: 'left', marginTop: '2rem' }}>
+                    <h2><FunnelPlotOutlined /> Results for "{SearchTerm}"  </h2>
+                </div>
+                :
+                <div style={{ textAlign: 'left', marginTop: '2rem' }}>
+                    <h2><FileSyncOutlined /> Recently Posted <Icon type="time" /> </h2>
+                </div>
+            }
             <Row gutter={[16, 16]} >
                 {renderRecentlyPosted}
             </Row>

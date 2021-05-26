@@ -1,6 +1,4 @@
 import React from 'react'
-import { Icon } from 'antd';
-
 
 function Footer() {
     return (
@@ -9,7 +7,7 @@ function Footer() {
             flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', fontSize: '1rem'
         }}>
-            <p> Go to see the source code </p>
+            <p> Dean's Canada Shop </p>
 
         </div>
     )
