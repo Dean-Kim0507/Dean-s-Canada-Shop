@@ -158,11 +158,9 @@ router.post('/products', (req, res) => {
 
                             Product.find({ _id: recentlyViews })
                                 .populate("writer")
-                                .skip(0)
-                                .limit(4)
                                 .exec((err, recentProductInfo) => {
                                     if (err) return res.status(400).json({ success: false, err })
-
+                                    console.log('recentProductInfo: ', recentProductInfo)
                                     //Add clicked date to recentProductInfo
                                     recentProductInfo.forEach((posts, index) => {
                                         userInfo.recentlyViewed.forEach((rp, i) => {
@@ -176,11 +174,18 @@ router.post('/products', (req, res) => {
                                     recentProductInfo.sort(function (a, b) {
                                         return b['date'] - a['date'];
                                     });
+                                    let recentProducts = [];
+                                    //return only four recent viewed posts
+                                    recentProductInfo.forEach((posts, index) => {
+                                        if (index < 4) {
+                                            recentProducts.push(posts)
+                                        }
+                                    })
 
                                     return res.status(200).json({
                                         success: true,
                                         productInfo,
-                                        recentProductInfo,
+                                        recentProductInfo: recentProducts,
                                         postSize: productInfo.length
                                     })
                                 })
