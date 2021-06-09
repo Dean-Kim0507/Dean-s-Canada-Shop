@@ -160,7 +160,6 @@ router.post('/products', (req, res) => {
                                 .populate("writer")
                                 .exec((err, recentProductInfo) => {
                                     if (err) return res.status(400).json({ success: false, err })
-                                    console.log('recentProductInfo: ', recentProductInfo)
                                     //Add clicked date to recentProductInfo
                                     recentProductInfo.forEach((posts, index) => {
                                         userInfo.recentlyViewed.forEach((rp, i) => {
