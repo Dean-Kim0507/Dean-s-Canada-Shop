@@ -145,8 +145,6 @@ function LandingPage(props) {
 
         newFilters[category] = filters
 
-        console.log('filters', filters)
-
         if (category === "price") {
             let priceValues = handlePrice(filters)
             newFilters[category] = priceValues
@@ -171,8 +169,6 @@ function LandingPage(props) {
         if (newSearchTerm.length > 0) setShowFilters(true);
         else setShowFilters(false)
     }
-
-    console.log('window.location.href: ', window.location.href)
 
     return (
         <div style={{ width: '75%', margin: '3rem auto' }}>
