@@ -92,7 +92,6 @@ function LandingPage(props) {
                 <Meta
                     title={product.title}
                     description={`$${product.price}`}
-
                 />
                 <Rate disabled defaultValue={rating(product.feedback)} />
             </Card>
@@ -104,10 +103,12 @@ function LandingPage(props) {
         return <Col lg={6} md={8} xs={24} key={index}>
             <Card
                 cover={<a href={`/product/${product._id}`} ><ImageSlider images={product.images} /></a>}
+                style={{ background: '#fcecdd' }}
             >
                 <Meta
                     title={product.title}
                     description={`$${product.price}`}
+                    style={{ color: 'white' }}
                 />
                 <Rate disabled defaultValue={rating(product.feedback)} />
             </Card>
