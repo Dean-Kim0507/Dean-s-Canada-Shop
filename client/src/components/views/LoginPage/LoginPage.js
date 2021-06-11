@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { withRouter } from "react-router-dom";
-import { loginUser } from "../../../_actions/user_actions";
+import { loginUser, googleOAuth } from "../../../_actions/user_actions";
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Form, Icon, Input, Button, Checkbox, Typography } from 'antd';
 import { useDispatch } from "react-redux";
+import { GoogleLogin } from 'react-google-login'
 
 const { Title } = Typography;
 
@@ -20,6 +21,15 @@ function LoginPage(props) {
   };
 
   const initialEmail = localStorage.getItem("rememberMe") ? localStorage.getItem("rememberMe") : '';
+
+  // OAuth Google login
+  const sucessHandler = async googleData => {
+    googleOAuth(googleData)
+  }
+
+  const failHandler = err => {
+    console.log(err)
+  }
 
   return (
     <Formik
@@ -126,15 +136,22 @@ function LoginPage(props) {
                 <Checkbox id="rememberMe" onChange={handleRememberMe} checked={rememberMe} >Remember me</Checkbox>
                 <a className="login-form-forgot" href="/reset_user" style={{ float: 'right' }}>
                   forgot password
-                  </a>
+                </a>
                 <div>
                   <Button type="primary" htmlType="submit" className="login-form-button" style={{ minWidth: '100%' }} disabled={isSubmitting} onSubmit={handleSubmit}>
                     Log in
-                </Button>
+                  </Button>
                 </div>
                 Or <a href="/register">register now!</a>
               </Form.Item>
             </form>
+            <GoogleLogin
+              clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}
+              buttonText="Log in with Google"
+              onSuccess={sucessHandler}
+              onFailure={failHandler}
+              cookiePolicy={'single_host_origin'}
+            />
           </div>
         );
       }}

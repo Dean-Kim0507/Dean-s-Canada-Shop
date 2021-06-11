@@ -3,9 +3,9 @@ const router = express.Router();
 const { User } = require("../models/User");
 const { Product } = require("../models/Product");
 const { Payment } = require("../models/Payment");
-
 const { auth } = require("../middleware/auth");
 const async = require('async');
+const { OAuth2Client } = require('google-auth-library')
 
 //=================================
 //             User
@@ -237,6 +237,24 @@ router.post('/successBuy', auth, (req, res) => {
     )
 })
 
+router.post('/google', async (req, res) => {
+    // console.log(req.body)
+    const client = new OAuth2Client(process.env.CLIENT_ID)
 
+    const { token } = req.body
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.CLIENT_ID
+    });
+    // const { name, email, picture } = ticket.getPayload();
+    console.log(ticket.getPayload())
+    // const user = await db.user.upsert({
+    //     where: { email: email },
+    //     update: { name, picture },
+    //     create: { name, email, picture }
+    // })
+    // res.status(201)
+    // res.json(user)
+})
 
 module.exports = router;

@@ -2,12 +2,22 @@
 import React, { useEffect } from 'react';
 import { auth } from '../_actions/user_actions';
 import { useSelector, useDispatch } from "react-redux";
+import { notification } from 'antd';
+import { SmileOutlined } from '@ant-design/icons';
 
-export default function (SpecificComponent, option, adminRoute = null) {
+export default function (SpecificComponent, option, adminRoute = null) { //put in a admin page route 
     function AuthenticationCheck(props) {
 
         let user = useSelector(state => state.user);
         const dispatch = useDispatch();
+        const openNotification = () => {
+            notification.open({
+                message: 'Notification Title',
+                description:
+                    'This is the content of the notification. This is the content of the notification. This is the content of the notification.',
+                icon: <SmileOutlined style={{ color: '#108ee9' }} />,
+            });
+        };
 
         useEffect(() => {
             //To know my current status, send Auth request 
@@ -15,6 +25,7 @@ export default function (SpecificComponent, option, adminRoute = null) {
                 //Not Loggined in Status 
                 if (!response.payload.isAuth) {
                     if (option) { //option -> This can be accessed only admin?
+                        openNotification();
                         props.history.push('/login')
                     }
                     //Loggined in Status 
