@@ -133,9 +133,11 @@ export function googleOAuth(googleData) {
 
 
     const request = axios.post(`/api/users/google`, { token: googleData.tokenId })
-        .then(response => {
-            console.log(response.data)
-        })
+        .then(response => response.data)
+    return {
+        type: LOGOUT_USER,
+        payload: request
+    }
 
 
     // const res = await fetch("/api/v1/auth/google", {

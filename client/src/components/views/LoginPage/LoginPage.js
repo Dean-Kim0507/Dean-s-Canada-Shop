@@ -3,9 +3,10 @@ import { withRouter } from "react-router-dom";
 import { loginUser, googleOAuth } from "../../../_actions/user_actions";
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { Form, Icon, Input, Button, Checkbox, Typography } from 'antd';
+import { Form, Icon, Input, Button, Checkbox, Typography, SmileOutlined, notification } from 'antd';
 import { useDispatch } from "react-redux";
 import { GoogleLogin } from 'react-google-login'
+import { GoogleOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -24,7 +25,28 @@ function LoginPage(props) {
 
   // OAuth Google login
   const sucessHandler = async googleData => {
-    googleOAuth(googleData)
+    dispatch(googleOAuth(googleData))
+      .then(response => {
+        if (response.payload.loginSuccess) {
+          window.localStorage.setItem('userId', response.payload.userId);
+          props.history.push("/");
+        } else {
+          notification.open({
+            message: 'Google Authentication Error',
+            description:
+              'Google Authentication Error, Try again',
+            icon: <GoogleOutlined />,
+          });
+        }
+      })
+      .catch(err => {
+        notification.open({
+          message: 'Google Authentication Error',
+          description:
+            'Google Authentication Error, Try again',
+          icon: <GoogleOutlined />,
+        });
+      });
   }
 
   const failHandler = err => {
@@ -57,7 +79,7 @@ function LoginPage(props) {
               if (response.payload.loginSuccess) {
                 window.localStorage.setItem('userId', response.payload.userId);
                 if (rememberMe === true) {
-                  window.localStorage.setItem('rememberMe', values.id);
+                  window.localStorage.setItem('rememberMe', values.email);
                 } else {
                   localStorage.removeItem('rememberMe');
                 }

@@ -4,12 +4,14 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { registerUser } from "../../../_actions/user_actions";
 import { useDispatch } from "react-redux";
+import { message } from 'antd';
 
 import {
   Form,
   Input,
   Button,
 } from 'antd';
+import { ConsoleSqlOutlined } from "@ant-design/icons";
 
 const formItemLayout = {
   labelCol: {
@@ -76,7 +78,10 @@ function RegisterPage(props) {
             if (response.payload.success) {
               props.history.push("/login");
             } else {
-              alert(response.payload.err.errmsg)
+              if (response.payload.err.code == 11000) {
+                message.error('Email already exists, you can try logging in with this email.');
+              }
+              else { message.error('Non Defined Error'); }
             }
           })
 

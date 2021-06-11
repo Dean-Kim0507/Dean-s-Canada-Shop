@@ -12,9 +12,9 @@ export default function (SpecificComponent, option, adminRoute = null) { //put i
         const dispatch = useDispatch();
         const openNotification = () => {
             notification.open({
-                message: 'Notification Title',
+                message: 'Token is expired',
                 description:
-                    'This is the content of the notification. This is the content of the notification. This is the content of the notification.',
+                    'Token is expired, Please login again',
                 icon: <SmileOutlined style={{ color: '#108ee9' }} />,
             });
         };

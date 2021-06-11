@@ -22,7 +22,7 @@ router.get("/auth", auth, (req, res) => {
         role: req.user.role,
         image: req.user.image,
         cart: req.user.cart,
-        history: req.user.history
+        history: req.user.history,
     });
 });
 
@@ -31,6 +31,7 @@ router.post("/register", (req, res) => {
     const user = new User(req.body);
 
     user.save((err, doc) => {
+        console.log(err)
         if (err) return res.json({ success: false, err });
         return res.status(200).json({
             success: true
@@ -246,8 +247,56 @@ router.post('/google', async (req, res) => {
         idToken: token,
         audience: process.env.CLIENT_ID
     });
-    // const { name, email, picture } = ticket.getPayload();
+
     console.log(ticket.getPayload())
+
+    const googleUserInfo = ticket.getPayload();
+
+    User.findOne({ email: googleUserInfo.email }, (err, user) => {
+        if (!user) {
+            const newUser = new User({
+                name: googleUserInfo.given_name,
+                email: googleUserInfo.email,
+                password: googleUserInfo.sub,
+                lastname: googleUserInfo.family_name,
+                image: googleUserInfo.picture
+            });
+
+            newUser.save((err, doc) => {
+                console.log(err)
+                if (err) return res.json({ success: false, err });
+                newUser.generateToken((err, user) => {
+                    if (err) return res.status(400).send(err);
+                    res.cookie("w_authExp", user.tokenExp);
+                    res
+                        .cookie("w_auth", user.token)
+                        .status(200)
+                        .json({
+                            loginSuccess: true, userId: user._id
+                        });
+                });
+
+            });
+        }
+        else {
+            user.comparePassword(googleUserInfo.sub, (err, isMatch) => {
+                if (!isMatch)
+                    return res.json({ loginSuccess: false, message: "Wrong google sub" });
+
+                user.generateToken((err, user) => {
+                    if (err) return res.status(400).send(err);
+                    res.cookie("w_authExp", user.tokenExp);
+                    res
+                        .cookie("w_auth", user.token)
+                        .status(200)
+                        .json({
+                            loginSuccess: true, userId: user._id
+                        });
+                });
+            });
+        }
+    });
+
     // const user = await db.user.upsert({
     //     where: { email: email },
     //     update: { name, picture },
