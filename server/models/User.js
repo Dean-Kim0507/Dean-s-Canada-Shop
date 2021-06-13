@@ -50,7 +50,7 @@ const userSchema = mongoose.Schema({
 
 userSchema.pre('save', function (next) {
     let user = this;
-
+    console.log('isModified: ', user.isModified('password'))
     if (user.isModified('password')) {
         // console.log('password changed')
         bcrypt.genSalt(saltRounds, function (err, salt) {
@@ -87,16 +87,30 @@ userSchema.methods.generateToken = function (cb) {
     })
 }
 
-userSchema.statics.findByToken = function (token, cb) {
+userSchema.statics.findByToken = function (data, cb) {
     let user = this;
+    let token = data.token;
+    let type = data.type;
 
-    jwt.verify(token, process.env.JWT_SECRET, function (err, decode) {
-        user.findOne({ "_id": decode, "token": token }, function (err, user) {
-            if (err) return cb(err);
-
-            cb(null, user);
+    if (type == 'jwt') {
+        jwt.verify(token, process.env.JWT_SECRET, function (err, decode) {
+            user.findOne({ "_id": decode, "token": token }, function (err, user) {
+                if (err) return cb(err);
+                cb(null, user);
+            })
         })
-    })
+    } else {
+
+        user.findOne({ "token": token }, function (err, user) {
+            if (err) return cb(err);
+            if (user.tokenExp >= moment().valueOf()) {
+                cb(null, user)
+            }
+            else {
+                cb(null, null)
+            }
+        })
+    }
 }
 
 const User = mongoose.model('User', userSchema);

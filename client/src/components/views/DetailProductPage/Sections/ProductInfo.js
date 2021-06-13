@@ -1,14 +1,18 @@
 import React from 'react'
-import { Button, Descriptions, message, Rate } from 'antd';
+import { Button, Descriptions, notification, Rate } from 'antd';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../../../../_actions/user_actions';
 import ShowFeedback from './ShowFeedback';
+import { SmileOutlined } from '@ant-design/icons';
 
 function ProductInfo(props) {
     const dispatch = useDispatch();
 
     const success = () => {
-        message.success('Added to Cart');
+        notification.open({
+            message: 'Added to Cart',
+            icon: <SmileOutlined style={{ color: '#108ee9' }} />,
+        });
     };
 
     const clickHandler = () => {

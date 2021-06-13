@@ -138,22 +138,15 @@ export function googleOAuth(googleData) {
         type: LOGOUT_USER,
         payload: request
     }
-
-
-    // const res = await fetch("/api/v1/auth/google", {
-    //     method: "POST",
-    //     body: JSON.stringify({
-    //         token: googleData.tokenId
-    //     }),
-    //     headers: {
-    //         "Content-Type": "application/json"
-    //     }
-    // })
-    // const data = await res.json()
-    // store returned user somehow
 }
 
+// export function forgot(dataToSubmit) {
+//     const request = axios.post(`${USER_SERVER}/forgot`, dataToSubmit)
+//         .then(response => response.data);
 
+//     return request;
+//     // console.log(dataToSubmit)
+// }
 
 
 

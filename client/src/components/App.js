@@ -12,6 +12,8 @@ import DetailProductPage from "./views/DetailProductPage/DetailProductPage";
 import CartPage from './views/CartPage/CartPage';
 import MyPage from './views/MyPage/MyPage';
 import Feedback from './views/LeaveFeedback/LeaveFeedback'
+import Forgot from './views/LoginPage/ForgotPw';
+import ResetPw from './views/LoginPage/ResetPw'
 
 //null   Anyone Can go inside
 //true   only logged in user can go inside
@@ -31,6 +33,8 @@ function App() {
           <Route exact path="/user/cart" component={Auth(CartPage, true)} />
           <Route exact path="/my_page" component={Auth(MyPage, true)} />
           <Route exact path="/feedback/:productId" component={Auth(Feedback, true)} />
+          <Route exact path="/forgot" component={Auth(Forgot, null)} />
+          <Route exact path="/resetpw/:token/:email" component={Auth(ResetPw, false)} />
         </Switch>
       </div>
       <Footer />

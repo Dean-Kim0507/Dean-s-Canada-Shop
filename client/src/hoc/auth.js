@@ -3,21 +3,13 @@ import React, { useEffect } from 'react';
 import { auth } from '../_actions/user_actions';
 import { useSelector, useDispatch } from "react-redux";
 import { notification } from 'antd';
-import { SmileOutlined } from '@ant-design/icons';
+import { FrownOutlined } from '@ant-design/icons';
 
 export default function (SpecificComponent, option, adminRoute = null) { //put in a admin page route 
     function AuthenticationCheck(props) {
 
         let user = useSelector(state => state.user);
         const dispatch = useDispatch();
-        const openNotification = () => {
-            notification.open({
-                message: 'Token is expired',
-                description:
-                    'Token is expired, Please login again',
-                icon: <SmileOutlined style={{ color: '#108ee9' }} />,
-            });
-        };
 
         useEffect(() => {
             //To know my current status, send Auth request 
@@ -25,7 +17,12 @@ export default function (SpecificComponent, option, adminRoute = null) { //put i
                 //Not Loggined in Status 
                 if (!response.payload.isAuth) {
                     if (option) { //option -> This can be accessed only admin?
-                        openNotification();
+                        notification.open({
+                            message: 'Token is expired',
+                            description:
+                                'Token is expired, Please login again',
+                            icon: <FrownOutlined style={{ color: '#108ee9' }} />,
+                        });
                         props.history.push('/login')
                     }
                     //Loggined in Status 
@@ -37,6 +34,12 @@ export default function (SpecificComponent, option, adminRoute = null) { //put i
                     //Logged in Status, but Try to go into log in page 
                     else {
                         if (option === false) {
+                            notification.open({
+                                message: 'Error',
+                                description:
+                                    'You can not access here. Please log out first.',
+                                icon: <FrownOutlined style={{ color: '#108ee9' }} />,
+                            });
                             props.history.push('/')
                         }
                     }

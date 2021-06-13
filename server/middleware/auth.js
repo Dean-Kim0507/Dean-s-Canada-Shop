@@ -1,21 +1,36 @@
 const { User } = require('../models/User');
 
-let auth = (req, res, next) => {
+const auth = (req, res, next) => {
+  let token;
+  let type;
 
-  let token = req.cookies.w_auth;
+  if (req.body.token) {
+    token = req.body.token;
+    type = 'random'
+  }
+  else if (req.cookies.w_auth) {
+    token = req.cookies.w_auth;
+    type = 'jwt';
+  }
 
-  User.findByToken(token, (err, user) => {
+
+  const data = {
+    token: token,
+    type: type
+  }
+
+  User.findByToken(data, (err, user) => {
     if (err) throw err;
     if (!user)
       return res.json({
         isAuth: false,
         error: true
       });
-
     req.token = token;
     req.user = user;
     next();
   });
 };
+
 
 module.exports = { auth };
