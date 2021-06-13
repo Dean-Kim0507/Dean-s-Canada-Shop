@@ -180,9 +180,9 @@ function LandingPage(props) {
                     <Links />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <img style={{ minWidth: '100px', width: '100px', height: '80px', paddingBottom: '1.5rem', }}
-                        src={`https://dean-website.s3.ca-central-1.amazonaws.com/icon/dh_icon.gif`} />
-                    <h1 style={{ marginLeft: '-1rem' }}>Dean's Canada Shop</h1>
+                    <img style={{ minWidth: '60px', width: '60px', height: '80px', margin: '-1.5vw 0 0 -5vw' }}
+                        src={`https://dean-website.s3.ca-central-1.amazonaws.com/icon/dean.png`} />
+                    <h1>Dean's Canada Shop</h1>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', margin: '1rem auto' }}>
                     <SearchFeature
