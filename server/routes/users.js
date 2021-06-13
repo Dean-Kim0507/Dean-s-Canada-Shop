@@ -168,8 +168,6 @@ router.get('/removeFromCart', auth, (req, res) => {
     )
 })
 
-
-
 router.post('/successBuy', auth, (req, res) => {
 
     //1. User Collection 안에  History 필드 안에  간단한 결제 정보 넣어주기
@@ -210,17 +208,13 @@ router.post('/successBuy', auth, (req, res) => {
             payment.save((err, doc) => {
                 if (err) return res.json({ success: false, err })
 
-
-                //3. Product Collection 안에 있는 sold 필드 정보 업데이트 시켜주기 
-
-
+                //3. Product Collection 안에 있는 sold 필드 정보 업데이트 시켜주기
                 //상품 당 몇개의 quantity를 샀는지 
 
                 let products = [];
                 doc.product.forEach(item => {
                     products.push({ id: item.id, quantity: item.quantity })
                 })
-
                 //
                 async.eachSeries(products, (item, callback) => {
 
@@ -248,19 +242,22 @@ router.post('/successBuy', auth, (req, res) => {
     )
 })
 
+// Google login/ receive:token -> if new user, store to db and return user info or just return user info -> return userinfo
 router.post('/google', async (req, res) => {
-    // console.log(req.body)
-    const client = new OAuth2Client(process.env.CLIENT_ID)
 
+    const client = new OAuth2Client(process.env.CLIENT_ID)
+    //verify Token 
     const { token } = req.body
     const ticket = await client.verifyIdToken({
         idToken: token,
         audience: process.env.CLIENT_ID
     });
-
+    // get user info from google
     const googleUserInfo = ticket.getPayload();
 
+    //Search user info
     User.findOne({ email: googleUserInfo.email }, (err, user) => {
+        //if user info doesn't exists
         if (!user) {
             const newUser = new User({
                 name: googleUserInfo.given_name,
@@ -285,6 +282,7 @@ router.post('/google', async (req, res) => {
 
             });
         }
+        //if user info exists, just compare password(sub info)
         else {
             user.comparePassword(googleUserInfo.sub, (err, isMatch) => {
                 if (!isMatch)
@@ -304,8 +302,9 @@ router.post('/google', async (req, res) => {
         }
     });
 })
-
+// fogot/ receive: email, user want to find -> search the email and if it exists, return and send email with token (1hour validation)or not, send err with err message
 router.post('/forgot', async (req, res) => {
+    // find user by using email
     User.findOne(
         { email: req.body.email },
         (err, user) => {
@@ -314,21 +313,22 @@ router.post('/forgot', async (req, res) => {
                     success: false,
                     message: "Email doesn't exist, Please try again."
                 });
-
+            //if email exists, request refreshToken to access google OAuth   
             const oAuth2Client = new google.auth.OAuth2(process.env.FORGOT_EMAIL_CLIENT_ID, process.env.FORGOT_EMAIL_SECRET, process.env.FORGOT_REDIRECT_URI)
             oAuth2Client.setCredentials({ refresh_token: process.env.FORGOT_EMAIL_REFRESH_TOKEN })
 
-            // Generate Token to access the page to reset password
+            // Generate Token to access the reset password PAGE
             const token = crypto.randomBytes(20).toString('hex');
-
             user.tokenExp = (moment().add(1, 'hour').valueOf()); //expired time 1 hour
             user.token = token;
 
+            //store token to db
             user.save(function (err, user) {
                 if (err) return res.status(400).json({ success: false, err })
-
+                //send mail
                 async function sendMail() {
                     try {
+                        //generate access token from google
                         const accessToken = await oAuth2Client.getAccessToken();
                         const transporter = nodemailer.createTransport({
                             service: 'gmail',
@@ -343,7 +343,7 @@ router.post('/forgot', async (req, res) => {
                                 accessToken: accessToken
                             }
                         });
-
+                        //Main contents
                         const mailOptions = {
                             from: process.env.FORGOT_EMAIL_ID,
                             to: user.email,
@@ -363,6 +363,7 @@ router.post('/forgot', async (req, res) => {
                         res.status(400).json({ success: false, message: 'Fail to Send Mail' });
                     }
                 }
+                //Executution
                 sendMail()
                     .then(result => {
                         if (result)
@@ -372,7 +373,7 @@ router.post('/forgot', async (req, res) => {
             })
         })
 })
-
+// compare token with token that is stored db and then reset password
 router.post('/resetpw', auth, async (req, res) => {
     let user = req.user;
     user.password = req.body.password;

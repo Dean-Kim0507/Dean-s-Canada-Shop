@@ -13,7 +13,6 @@ const auth = (req, res, next) => {
     type = 'jwt';
   }
 
-
   const data = {
     token: token,
     type: type
