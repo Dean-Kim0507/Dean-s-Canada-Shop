@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+//=================================
+//        Product Model
+//=================================
 
 const productSchema = mongoose.Schema({
     writer: {

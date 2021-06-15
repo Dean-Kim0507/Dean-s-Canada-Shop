@@ -3,11 +3,10 @@ import { Collapse, Radio } from 'antd';
 
 const { Panel } = Collapse;
 
-
+//Radio box
 function RadioBox(props) {
 
     const [Value, setValue] = useState(0)
-
 
     const renderRadioBox = () => (
         props.list && props.list.map(value => (

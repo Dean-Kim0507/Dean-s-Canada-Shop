@@ -14,7 +14,7 @@ function CartPage(props) {
 
     useEffect(() => {
         let cartItems = []
-        //리덕스 User state안에 cart 안에 상품이 들어있는지 확인 
+        // Check if same product exists in the user state in Redux
         if (props.user.userData && props.user.userData.cart) {
             if (props.user.userData.cart.length > 0) {
                 props.user.userData.cart.forEach(item => {
@@ -27,6 +27,7 @@ function CartPage(props) {
     }, [props.user.userData])
 
 
+    //Calculate totl price
     let calculateTotal = (cartDetail) => {
         let total = 0;
 
@@ -39,7 +40,7 @@ function CartPage(props) {
 
     }
 
-
+    //remove from cart
     let removeFromCart = (productId) => {
 
         dispatch(removeCartItem(productId))
@@ -52,6 +53,7 @@ function CartPage(props) {
             })
     }
 
+    // if trahsaction is success
     const transactionSuccess = (data) => {
         dispatch(onSuccessBuy({
             paymentData: data,
@@ -80,7 +82,7 @@ function CartPage(props) {
             <div>
                 <UserCardBlock products={props.user.cartDetail} removeItem={removeFromCart} />
             </div>
-            {/**Show total 이 없으면 showsuccess로 한번더 가서 물어봄*/}
+            {/**ask again if showtotal doesn't exist*/}
             {ShowTotal ?
                 <div style={{ marginTop: '3rem' }}>
                     <h2>Total Amount: ${Total}</h2>

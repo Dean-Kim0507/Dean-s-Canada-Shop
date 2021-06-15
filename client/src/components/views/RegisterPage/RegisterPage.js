@@ -35,7 +35,7 @@ const tailFormItemLayout = {
     },
   },
 };
-
+// Validation and submit function by using formik and yup
 function RegisterPage(props) {
   const dispatch = useDispatch();
   return (

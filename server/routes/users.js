@@ -13,8 +13,11 @@ const moment = require("moment");
 const async = require('async');
 //=================================
 //             User
+//       Api for user model
 //=================================
 
+// Autenticate a token and then return user's info if it's valid (Receive: Token / Return user's info)
+// Trigger -> authenticate user's jwt on the auth(middleware) ->if it's valid return user's info and refresh token or return err
 router.get("/auth", auth, (req, res) => {
     //Token Refresh
     req.user.generateToken((err, user) => {
@@ -25,7 +28,7 @@ router.get("/auth", auth, (req, res) => {
             .status(200)
             .json({
                 _id: req.user._id,
-                isAdmin: req.user.role === 0 ? false : true,
+                isAdmin: req.user.role === 1 ? false : true,
                 isAuth: true,
                 email: req.user.email,
                 name: req.user.name,
@@ -38,6 +41,10 @@ router.get("/auth", auth, (req, res) => {
     });
 });
 
+// Register page
+// Get a user's info and then store it (Receive: User's info / Return Success(boolean))
+// Validation - mongo DB will return error by using model if it has some wroing validation
+// Trigger -> get user's info and then store it to the DB -> reutrn success:true
 router.post("/register", (req, res) => {
     const user = new User(req.body);
     user.save((err, doc) => {
@@ -49,6 +56,8 @@ router.post("/register", (req, res) => {
     });
 });
 
+//Login function (Receive: email and plain password/ Return Success(boolean),usreId and cookie(token, exp))
+//Trigger -> get email ans password -> comapre with using scheman method -> if it's matched, generate a token -> reutrn Success(boolean),usreId and cookie(token, exp)
 router.post("/login", (req, res) => {
     User.findOne({ email: req.body.email }, (err, user) => {
         if (!user)
@@ -75,6 +84,8 @@ router.post("/login", (req, res) => {
     });
 });
 
+// logout (Receive: user ID / return success(boolean))
+// Trigger -> get user id -> delet token and token expire time in the DB -> return success(boolean)
 router.get("/logout", auth, (req, res) => {
     User.findOneAndUpdate({ _id: req.user._id }, { token: "", tokenExp: "" }, (err, doc) => {
         if (err) return res.json({ success: false, err });
@@ -84,14 +95,15 @@ router.get("/logout", auth, (req, res) => {
     });
 });
 
-
+// add to cart (Receive: product info / Return: User's info with care info)
+// Trigger -> autehnticate User and then get user's  info from middleware -> Check if this user's cart alreday has this product -> if there is count +1 or not, add into cart array
 router.post("/addToCart", auth, (req, res) => {
 
-    //먼저  User Collection에 해당 유저의 정보를 가져오기 
+    //Get User's info
     User.findOne({ _id: req.user._id },
         (err, userInfo) => {
 
-            // 가져온 정보에서 카트에다 넣으려 하는 상품이 이미 들어 있는지 확인 
+            // To check whether this product is alreday in the DB or not
             // To avoid error for method findOneAndUpdate
             let duplicate = false;
             userInfo.cart.forEach((item) => {
@@ -100,7 +112,7 @@ router.post("/addToCart", auth, (req, res) => {
                 }
             })
 
-            //상품이 이미 있을때
+            //If the product is alreday in the DB
             if (duplicate) {
                 User.findOneAndUpdate(
                     { _id: req.user._id, "cart.id": req.body.productId },
@@ -113,7 +125,7 @@ router.post("/addToCart", auth, (req, res) => {
                     }
                 )
             }
-            //상품이 이미 있지 않을때 
+            //if there is not product,
             else {
                 User.findOneAndUpdate(
                     { _id: req.user._id },
@@ -136,26 +148,26 @@ router.post("/addToCart", auth, (req, res) => {
         })
 });
 
-
+//Remove cart (Receive: Product id (query) /  Return: Product info and user info with a cart )
 router.get('/removeFromCart', auth, (req, res) => {
 
-    //먼저 cart안에 내가 지우려고 한 상품을 지워주기 
+    //Delete cart info in a user first
     User.findOneAndUpdate(
         { _id: req.user._id },
         {
-            "$pull": //넣을땐 push, 지울땐 pull
+            "$pull":
                 { "cart": { "id": req.query.id } }
         },
         { new: true },
         (err, userInfo) => {
             let cart = userInfo.cart;
+
+            //productIds => ['5e8961794be6d81ce2b94752', '5e8960d721e2ca1cb3e30de4'] 
             let array = cart.map(item => {
                 return item.id
             })
 
-            //product collection에서  현재 남아있는 상품들의 정보를 가져오기 
-
-            //productIds = ['5e8961794be6d81ce2b94752', '5e8960d721e2ca1cb3e30de4'] 이런식으로 바꿔주기
+            //Get and send a product info with user's cart
             Product.find({ _id: { $in: array } })
                 .populate('writer')
                 .exec((err, productInfo) => {
@@ -168,9 +180,11 @@ router.get('/removeFromCart', auth, (req, res) => {
     )
 })
 
+// Success Buy (Receive: payment info with product info / Return: suceess(boolean), user's cart info (empty))
+// Trigger -> get payment info with product info -> sotre to the history -> count +1 the number of product's sold and delete all contents in the user'cart-> return empty cart
 router.post('/successBuy', auth, (req, res) => {
 
-    //1. User Collection 안에  History 필드 안에  간단한 결제 정보 넣어주기
+    //1. Store brief payment info to the user's collection 
     let history = [];
     let transactionData = {};
 
@@ -185,7 +199,7 @@ router.post('/successBuy', auth, (req, res) => {
         })
     })
 
-    //2. Payment Collection 안에  자세한 결제 정보들 넣어주기 
+    //2. Give Detaile payment info
     transactionData.user = {
         id: req.user._id,
         name: req.user.name,
@@ -195,7 +209,7 @@ router.post('/successBuy', auth, (req, res) => {
     transactionData.data = req.body.paymentData
     transactionData.product = history
 
-    //history 정보 저장 
+    //Sotre to the history
     User.findOneAndUpdate(
         { _id: req.user._id },
         { $push: { history: history }, $set: { cart: [] } },
@@ -203,13 +217,12 @@ router.post('/successBuy', auth, (req, res) => {
         (err, user) => {
             if (err) return res.json({ success: false, err })
 
-            //payment에다가  transactionData정보 저장 
+            //store transactionData info to the payment  
             const payment = new Payment(transactionData)
             payment.save((err, doc) => {
                 if (err) return res.json({ success: false, err })
 
-                //3. Product Collection 안에 있는 sold 필드 정보 업데이트 시켜주기
-                //상품 당 몇개의 quantity를 샀는지 
+                //3. Count +1 product's sold 
 
                 let products = [];
                 doc.product.forEach(item => {
@@ -242,7 +255,8 @@ router.post('/successBuy', auth, (req, res) => {
     )
 })
 
-// Google login/ receive:token -> if new user, store to db and return user info or just return user info -> return userinfo
+// Google login (Receive: access token / Return: User info)
+// Trigger -> receive:token -> if new user, store to db and return user info or just return user info -> return userinfo
 router.post('/google', async (req, res) => {
 
     const client = new OAuth2Client(process.env.CLIENT_ID)
@@ -302,7 +316,8 @@ router.post('/google', async (req, res) => {
         }
     });
 })
-// fogot/ receive: email, user want to find -> search the email and if it exists, return and send email with token (1hour validation)or not, send err with err message
+// fogot (Receive: email / Return: success(boolean) and err message) 
+// receive: email, user want to find -> search the email and if it exists, return and send email with token (1hour validation)or not, send err with err message
 router.post('/forgot', async (req, res) => {
     // find user by using email
     User.findOne(
@@ -322,7 +337,7 @@ router.post('/forgot', async (req, res) => {
             user.tokenExp = (moment().add(1, 'hour').valueOf()); //expired time 1 hour
             user.token = token;
 
-            //store token to db
+            //store token to the DB
             user.save(function (err, user) {
                 if (err) return res.status(400).json({ success: false, err })
                 //send mail
@@ -373,7 +388,8 @@ router.post('/forgot', async (req, res) => {
             })
         })
 })
-// compare token with token that is stored db and then reset password
+
+// Check token and then reset password / receive: token and email, send: success:true
 router.post('/resetpw', auth, async (req, res) => {
     let user = req.user;
     user.password = req.body.password;

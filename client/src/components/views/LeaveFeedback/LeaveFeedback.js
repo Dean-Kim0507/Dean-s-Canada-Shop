@@ -10,6 +10,7 @@ function LeaveFeedback(props) {
 	const [Product, setProduct] = useState();
 	const [Stars, setStars] = useState(5);
 
+	//Get a product info with feedbacks
 	useEffect(() => {
 		if (props.match.params.productId) {
 			axios.get(`/api/product/products_by_id?id=${props.match.params.productId}&type=feedback&userid=${null}`)
@@ -27,7 +28,7 @@ function LeaveFeedback(props) {
 	const RateHandleChange = (stars) => {
 		setStars(stars);
 	}
-
+	//Store feedback to the product collection
 	const onSubmit = (event) => {
 		event.preventDefault();
 

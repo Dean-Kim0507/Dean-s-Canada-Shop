@@ -11,6 +11,7 @@ import {
 } from './types';
 import { USER_SERVER } from '../components/Config.js';
 
+// Signup Function (Send: user info / Receive: success(boolean))
 export function registerUser(dataToSubmit) {
     const request = axios.post(`${USER_SERVER}/register`, dataToSubmit)
         .then(response => response.data);
@@ -21,6 +22,7 @@ export function registerUser(dataToSubmit) {
     }
 }
 
+// Signup Function (Send: email, plain password / Receive: Success(boolean),usreId and cookie(token, exp)))
 export function loginUser(dataToSubmit) {
     const request = axios.post(`${USER_SERVER}/login`, dataToSubmit)
         .then(response => response.data);
@@ -31,6 +33,8 @@ export function loginUser(dataToSubmit) {
     }
 }
 
+//High ordered component check user's authentication
+//Send: Token / Receive: user's info)
 export function auth() {
     const request = axios.get(`${USER_SERVER}/auth`)
         .then(response => response.data);
@@ -41,6 +45,7 @@ export function auth() {
     }
 }
 
+//logout function (Send: user ID / Receive: success(boolean))
 export function logoutUser() {
     const request = axios.get(`${USER_SERVER}/logout`)
         .then(response => response.data);
@@ -52,6 +57,7 @@ export function logoutUser() {
 }
 
 
+// add to cart (Send: product info / Receive: User's info with care info)
 export function addToCart(id) {
     let body = {
         productId: id
@@ -65,20 +71,18 @@ export function addToCart(id) {
     }
 }
 
-//user에 저장되있는 카트 아이디를 서버에보내 받아온뒤 quantity는 userCart와 비교후 넣어준다
+//Get a card info frm server and then count quantity
 export function getCartItems(cartItems, userCart) {
 
     const request = axios.get(`/api/product/products_by_id?id=${cartItems}&type=array`)
         .then(response => {
-            // CartItem들에 해당하는 정보들을  
-            // Product Collection에서 가져온후에 
-            // Quantity 정보를 넣어 준다.
+            // Get CartItem from Product Collection put in quantity
             console.log(response.data)
             userCart.forEach(cartItem => {
                 response.data.forEach((productDetail, index) => {
                     if (cartItem.id === productDetail._id) {
                         response.data[index].quantity = cartItem.quantity
-                        //서버로부터 가져온 product.id 와 user's data.id가 비교해서 같으면 user's data.quantity를 response.data로 넣어준다
+                        // If product.id is the same as user's data.id, put user's data.quantity into response.data
                     }
                 })
             })
@@ -91,18 +95,17 @@ export function getCartItems(cartItems, userCart) {
     }
 }
 
-
+//  Remove cart (Send: Product id (query) /  Receive: Product info and user info with a cart )
 export function removeCartItem(productId) {
 
     const request = axios.get(`/api/users/removeFromCart?id=${productId}`)
         .then(response => {
-            //productInfo ,  cart 정보를 조합해서   CartDetail을 만든다. 
+            //make cart detail by combining product info and quantity 
             response.data.cart.forEach(item => {
                 response.data.productInfo.forEach((product, index) => {
                     if (item.id === product._id) {
                         response.data.productInfo[index].quantity = item.quantity
                     }
-
                 })
             })
             return response.data;
@@ -114,7 +117,7 @@ export function removeCartItem(productId) {
     }
 }
 
-
+// Success Buy (Send: payment info with product info / Receive: suceess(boolean), user's cart info (empty))
 
 export function onSuccessBuy(data) {
 
@@ -127,6 +130,7 @@ export function onSuccessBuy(data) {
     }
 }
 
+// Google login (Send: access token id / Receive: User info)
 export function googleOAuth(googleData) {
 
     console.log(googleData)

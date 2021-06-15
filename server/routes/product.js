@@ -37,20 +37,25 @@ const s3config = require('../config/s3')
 
 // })
 
-router.post('/image', upload.single('file'), (req, res) => {
 
-    return res.json({ success: true, filePath: req.file.location, fileName: res.req.file.originalname })
+// router.post('/image', upload.single('file'), (req, res) => {
 
-})
+//     return res.json({ success: true, filePath: req.file.location, fileName: res.req.file.originalname })
 
-router.post('/deleteimg', deleteImg, (req, res) => {
-
-    return res.json({ success: true })
-
-})
+// })
 
 
+// router.post('/deleteimg', deleteImg, (req, res) => {
 
+//     return res.json({ success: true })
+
+// })
+
+//==============================================================
+
+
+//Upload Product (Receive: Product info / Return: success true)
+// Store produt info to the DB or Push feedback to the exist product collections
 router.post('/', auth, (req, res) => {
 
     let type = req.body.type;
@@ -83,15 +88,13 @@ router.post('/', auth, (req, res) => {
 
         )
     }
-
-
 })
 
-
+//Return all products info in the product collection (Receive : product info, searcherm and filter info / Returns: Success(boolean) with product info(recently viewed)))
 router.post('/products', (req, res) => {
     let order = req.body.order ? req.body.order : "desc";
     let sortBy = req.body.sortBy ? req.body.sortBy : "_id";
-    // product collection에 들어 있는 모든 상품 정보를 가져오기 
+
     let limit = req.body.limit ? parseInt(req.body.limit) : 20;
     let skip = req.body.skip ? parseInt(req.body.skip) : 0;
     let term = req.body.searchTerm
@@ -101,9 +104,10 @@ router.post('/products', (req, res) => {
     let findArgs = {};
 
     for (let key in req.body.filters) {
+        //if user set filter
         if (req.body.filters[key].length > 0) {
 
-            //Object[] ->[]안에는 변수가 들어가고 이로인해 Object 안에 있는 property 호출
+            //Object[] ->set filter reuirements
             //ex. args = { price: { '$gte': 200, '$lte': 249 } }
             if (key === "price") {
                 findArgs[key] = {
@@ -117,12 +121,12 @@ router.post('/products', (req, res) => {
             }
         }
     }
-
+    // If user use search
     if (term) {
         //Search Function
         Product.find(findArgs)
-            .find({ $text: { $search: term } }) //text 에 있는 search 기능
-            .populate("writer") //writer collection 도 가져오기
+            .find({ $text: { $search: term } }) //search term
+            .populate("writer") //populate writer collection 
             .sort([[sortBy, order]])
             .skip(skip)
             .limit(limit)
@@ -142,6 +146,7 @@ router.post('/products', (req, res) => {
             .limit(limit)
             .exec((err, productInfo) => {
                 if (err) return res.status(400).json({ success: false, err })
+                // if logged in, search recently viewed product(s)
                 if (req.body.user._id) {
                     // To get rescent views
                     User.findOne({ _id: req.body.user._id })
@@ -155,7 +160,7 @@ router.post('/products', (req, res) => {
                             recentlyViews = userInfo.recentlyViewed.map(item => {
                                 return item.id
                             })
-
+                            //Find the redcently view
                             Product.find({ _id: recentlyViews })
                                 .populate("writer")
                                 .exec((err, recentProductInfo) => {
@@ -180,7 +185,7 @@ router.post('/products', (req, res) => {
                                             recentProducts.push(posts)
                                         }
                                     })
-
+                                    //return
                                     return res.status(200).json({
                                         success: true,
                                         productInfo,
@@ -191,6 +196,7 @@ router.post('/products', (req, res) => {
                         }
                         )
                 }
+                // If Not logged in, just return all products' info
                 else {
                     return res.status(200).json({
                         success: true,
@@ -201,7 +207,7 @@ router.post('/products', (req, res) => {
                 }
 
             })
-        //Filters
+        //If user set filters
     } else {
         Product.find(findArgs)
             .populate("writer")
@@ -218,6 +224,7 @@ router.post('/products', (req, res) => {
     }
 })
 
+// Search (a) product(s) by id (Receive: type(array: over two products, feedback:return feedback only, single: a product info ), product id / Return: product info or feedback(s) )
 //id=123123123,324234234,324234234  type=array
 router.get('/products_by_id', (req, res) => {
     //When you use post method, use req.body, When use query, use query.
@@ -261,6 +268,7 @@ router.get('/products_by_id', (req, res) => {
             { new: true },
             (err, product) => {
                 if (err) return res.status(400).send(err)
+                // if 
                 if (type == 'single') {
                     if (req.query.userid != 'undefined') {
                         User.findOne({ _id: req.query.userid },

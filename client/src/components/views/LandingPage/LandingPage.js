@@ -25,6 +25,7 @@ function LandingPage(props) {
     const [RecentViewedProducts, setRecentViewedProducts] = useState([])
 
 
+    //Get user's dat from high ordered component
     useEffect(() => {
         if (props.user.userData) {
             let body = {
@@ -37,6 +38,7 @@ function LandingPage(props) {
         }
     }, [props.user.userData])
 
+    // Get product's information
     const getProducts = (body) => {
         axios.post('/api/product/products', body)
             .then(response => {
@@ -56,6 +58,7 @@ function LandingPage(props) {
             })
     }
 
+    // If the number of products over 8, it will be hide by load more button
     const loadMoreHanlder = () => {
 
         let skip = Skip + Limit
@@ -71,6 +74,8 @@ function LandingPage(props) {
         getProducts(body)
         setSkip(skip)
     }
+
+    //Feedback rating function
     const rating = (feedback) => {
         let rating = 0;
 
@@ -83,6 +88,7 @@ function LandingPage(props) {
 
     }
 
+    //Rendering recently posted posts
     const renderRecentlyPosted = RecentProducts.map((product, index) => {
 
         return <Col lg={6} md={8} xs={24} key={index}>
@@ -98,6 +104,7 @@ function LandingPage(props) {
         </Col>
     })
 
+    //Rendering recently viwed posts
     const renderRecentlyViewed = RecentViewedProducts.map((product, index) => {
 
         return <Col lg={6} md={8} xs={24} key={index}>
@@ -114,6 +121,7 @@ function LandingPage(props) {
         </Col>
     })
 
+    //Get Filtered result
     const showFilteredResults = (filters) => {
 
         let body = {
@@ -126,7 +134,7 @@ function LandingPage(props) {
         setSkip(0)
     }
 
-
+    // Price filter
     const handlePrice = (value) => {
         const data = price;
         let array = [];
@@ -139,6 +147,7 @@ function LandingPage(props) {
         return array;
     }
 
+    // Filter handler
     const handleFilters = (filters, category) => {
 
         const newFilters = { ...Filters }
@@ -153,6 +162,7 @@ function LandingPage(props) {
         setFilters(newFilters)
     }
 
+    // Search function
     const updateSearchTerm = (newSearchTerm) => {
 
         let body = {

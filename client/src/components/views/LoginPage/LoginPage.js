@@ -48,11 +48,12 @@ function LoginPage(props) {
         });
       });
   }
-
+  //If OAuth is fail
   const failHandler = err => {
     console.log(err)
   }
 
+  // Validation and submit function by using formik and yup
   return (
     <Formik
       initialValues={{

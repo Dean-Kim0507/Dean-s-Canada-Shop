@@ -4,6 +4,13 @@ const aws = require('aws-sdk');
 // aws.config.loadFromPath(__dirname + '/../config/s3.js');
 const awsConfig = require('../config/s3')
 const s3 = new aws.S3(awsConfig);
+
+//=================================
+//             Multer
+// Uplaode image(s) to AWS S3
+//=================================
+
+// Upload image
 const upload =
 	multer({
 		storage: multerS3({
@@ -17,7 +24,7 @@ const upload =
 		})
 	}, 'NONE');
 
-
+// Delete image
 async function deleteImg(req, res, next) {
 
 	//Extract the image name

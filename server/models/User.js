@@ -3,6 +3,10 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const jwt = require('jsonwebtoken');
 const moment = require("moment");
+//=================================
+//         User Model
+//   Author: Donghyun(Dean) Kim
+//=================================
 
 const userSchema = mongoose.Schema({
     name: {
@@ -22,6 +26,7 @@ const userSchema = mongoose.Schema({
         type: String,
         maxlength: 50
     },
+    // role: 0 - General User, 1 - Admin
     role: {
         type: Number,
         default: 0
@@ -47,7 +52,13 @@ const userSchema = mongoose.Schema({
     }
 })
 
+//=================================
+//   User Model Schema Function
+//      Frequently used methods
+//=================================
 
+// To check whether password is modeified or not, if password is chaged, password will be encrypted  
+// Trigger -> check whether password was changed or not -> if it's modified encrypt and return next() or just return next()
 userSchema.pre('save', function (next) {
     let user = this;
     if (user.isModified('password')) {
@@ -66,6 +77,8 @@ userSchema.pre('save', function (next) {
     }
 });
 
+// compare the password, user typed in with password in the db  (parameters: Plain Password /Return: user boolean isMatch)
+// Trigger -> get plain password -> decrypt and compare -> return isMath(boolean)
 userSchema.methods.comparePassword = function (plainPassword, cb) {
     bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
         if (err) return cb(err);
@@ -73,6 +86,8 @@ userSchema.methods.comparePassword = function (plainPassword, cb) {
     })
 }
 
+//Generate Jeson Web Token (exp: 1hour) (Return: user info callback)
+// Trigger -> just generate jwt token and store to the DB -> reutrn call back with user info
 userSchema.methods.generateToken = function (cb) {
     let user = this;
     let oneHour = (moment().add(1, 'hour').valueOf()) / 1000; //expired time 1 hour
@@ -86,11 +101,15 @@ userSchema.methods.generateToken = function (cb) {
     })
 }
 
+// Authenticate Token by using (parameters:token /Return: user info)
+// jwt: jwt.verify
+// random(Forgot password): compare a token with the token in the db (This token was stored when user type in a email in on the page of forgot password)
 userSchema.statics.findByToken = function (data, cb) {
     let user = this;
     let token = data.token;
     let type = data.type;
 
+    //Token type = jwt
     if (type == 'jwt') {
         jwt.verify(token, process.env.JWT_SECRET, function (err, decode) {
             user.findOne({ "_id": decode, "token": token }, function (err, user) {
@@ -100,6 +119,7 @@ userSchema.statics.findByToken = function (data, cb) {
         })
     } else {
 
+        //Token type = random
         user.findOne({ "token": token }, function (err, user) {
             if (err) return cb(err);
             if (user.tokenExp >= moment().valueOf()) {

@@ -2,7 +2,7 @@ import React from 'react'
 import "./UserCardBlock.css"
 import { Button } from 'antd';
 function UserCardBlock(props) {
-
+    // Rendering cart images
     const renderCartImage = (images) => {
         if (images.length > 0) {
             let image = images[0]
@@ -10,6 +10,7 @@ function UserCardBlock(props) {
         }
     }
 
+    //Rendering items
     const renderItems = () => (
         props.products && props.products.map((product, index) => (
             <tr key={index}>

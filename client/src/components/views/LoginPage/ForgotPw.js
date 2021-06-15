@@ -28,7 +28,7 @@ const tailFormItemLayout = {
 		},
 	},
 };
-
+// Validation and submit function by using formik and yup
 function ForgotPw(props) {
 	const [Validating, setValidating] = useState(false);
 	return (

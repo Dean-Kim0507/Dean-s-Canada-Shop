@@ -8,6 +8,7 @@ function FileUpload(props) {
 
     const [Images, setImages] = useState([])
 
+    //drop handler (send image(s) / Receive: image's filepath (S3))
     const dropHandler = (files) => {
 
         let formData = new FormData();
@@ -29,7 +30,7 @@ function FileUpload(props) {
             })
     }
 
-
+    //Delete image in S3
     const deleteHandler = (image) => {
 
         const img = {
