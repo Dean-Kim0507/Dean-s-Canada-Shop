@@ -29,6 +29,7 @@ const tailFormItemLayout = {
 	},
 };
 
+// Validation and submit function by using formik and yup
 const ResetPw = (props) => {
 	return (
 		<div>

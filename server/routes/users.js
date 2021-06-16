@@ -278,7 +278,8 @@ router.post('/google', async (req, res) => {
                 email: googleUserInfo.email,
                 password: googleUserInfo.sub,
                 lastname: googleUserInfo.family_name,
-                image: googleUserInfo.picture
+                image: googleUserInfo.picture,
+                oauth: true
             });
 
             newUser.save((err, doc) => {
@@ -328,6 +329,12 @@ router.post('/forgot', async (req, res) => {
                     success: false,
                     message: "Email doesn't exist, Please try again."
                 });
+            if (user.oauth) {
+                return res.json({
+                    success: false,
+                    message: "This user is registered as a Google user, please contact Google OAuth team."
+                });
+            }
             //if email exists, request refreshToken to access google OAuth   
             const oAuth2Client = new google.auth.OAuth2(process.env.FORGOT_EMAIL_CLIENT_ID, process.env.FORGOT_EMAIL_SECRET, process.env.FORGOT_REDIRECT_URI)
             oAuth2Client.setCredentials({ refresh_token: process.env.FORGOT_EMAIL_REFRESH_TOKEN })
@@ -368,7 +375,7 @@ router.post('/forgot', async (req, res) => {
                                 `<p>Hello ${user.name}</p>` +
                                 `<p>Please click the URL to reset your password.<p>` +
                                 `<a href='${process.env.DOMAIN}/resetpw/${token}/${user.email}'>Click here to reset Your Password</a><br/>` +
-                                `If you don't request this, please contac us` +
+                                `If you don't request this, please contact us` +
                                 `<h4> Dean's Canada Shop</h4>`
                         };
 

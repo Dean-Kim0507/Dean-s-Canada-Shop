@@ -25,7 +25,7 @@ function LandingPage(props) {
     const [RecentViewedProducts, setRecentViewedProducts] = useState([])
 
 
-    //Get user's dat from high ordered component
+    //Get user's data from high ordered component
     useEffect(() => {
         if (props.user.userData) {
             let body = {

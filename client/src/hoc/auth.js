@@ -25,6 +25,9 @@ export default function (SpecificComponent, option, adminRoute = null) { //put i
                         });
                         props.history.push('/login')
                     }
+                    // else {
+
+                    // }
                     //Loggined in Status 
                 } else {
                     //supposed to be Admin page, but not admin person wants to go inside

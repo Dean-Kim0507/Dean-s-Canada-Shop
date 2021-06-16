@@ -40,11 +40,17 @@ const userSchema = mongoose.Schema({
         default: []
     },
     image: String,
+
     token: {
         type: String,
     },
     tokenExp: {
         type: Number
+    },
+    //Google login user - true or not
+    oauth: {
+        type: Boolean,
+        default: false
     },
     recentlyViewed: {
         type: Array,
@@ -117,7 +123,7 @@ userSchema.statics.findByToken = function (data, cb) {
                 cb(null, user);
             })
         })
-    } else {
+    } else if (type == 'random') {
 
         //Token type = random
         user.findOne({ "token": token }, function (err, user) {
@@ -130,6 +136,7 @@ userSchema.statics.findByToken = function (data, cb) {
             }
         })
     }
+    else { cb(null, null) }
 }
 
 const User = mongoose.model('User', userSchema);
