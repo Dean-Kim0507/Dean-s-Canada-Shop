@@ -133,9 +133,6 @@ export function onSuccessBuy(data) {
 // Google login (Send: access token id / Receive: User info)
 export function googleOAuth(googleData) {
 
-    console.log(googleData)
-
-
     const request = axios.post(`/api/users/google`, { token: googleData.tokenId })
         .then(response => response.data)
     return {
