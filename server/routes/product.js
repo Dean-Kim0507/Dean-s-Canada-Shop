@@ -14,7 +14,7 @@ const s3config = require('../config/s3')
 //             Product
 //=================================
 
-
+//======Multer=======
 // var storage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, 'uploads/')
@@ -24,8 +24,10 @@ const s3config = require('../config/s3')
 //     }
 // })
 
-// var upload = multer({ storage: storage }).single("file")
+// let upload = multer({ storage: storage }).single("file")
 
+
+// upload(Receive: image file / Return: success(boolean), file path and file name)
 // router.post('/image', (req, res) => {
 
 //     upload(req, res, err => {
@@ -38,20 +40,20 @@ const s3config = require('../config/s3')
 // })
 
 
-// router.post('/image', upload.single('file'), (req, res) => {
+//======Multer S3=======
+//upload(Receive: image file / Return: success(boolean), file location and file original name)
+router.post('/image', upload.single('file'), (req, res) => {
 
-//     return res.json({ success: true, filePath: req.file.location, fileName: res.req.file.originalname })
+    return res.json({ success: true, filePath: req.file.location, fileName: res.req.file.originalname })
 
-// })
+})
 
+//upload(Receive: image file / Return: success(boolean))
+router.post('/deleteimg', deleteImg, (req, res) => {
 
-// router.post('/deleteimg', deleteImg, (req, res) => {
+    return res.json({ success: true })
 
-//     return res.json({ success: true })
-
-// })
-
-//==============================================================
+})
 
 
 //Upload Product (Receive: Product info / Return: success true)
