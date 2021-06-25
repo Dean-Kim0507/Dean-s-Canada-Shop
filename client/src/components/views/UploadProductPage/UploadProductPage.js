@@ -78,7 +78,9 @@ function UploadProductPage(props) {
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                 <h2> Upload</h2>
             </div>
-
+            <div style={{ textAlign: 'end' }}>
+                <p >If you want to delete a picture, just click!</p>
+            </div>
             <Form onSubmit={submitHandler}>
                 {/* DropZone */}
                 <FileUpload refreshFunction={updateImages} />
@@ -112,7 +114,7 @@ function UploadProductPage(props) {
             </Form>
 
 
-        </div>
+        </div >
     )
 }
 

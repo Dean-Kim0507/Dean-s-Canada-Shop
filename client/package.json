@@ -1,6 +1,7 @@
 {
   "name": "client",
   "version": "0.1.0",
+  "author": "Dean(Donghyun) Kim",
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^4.6.2",

@@ -1,6 +1,7 @@
 {
   "name": "dean-canada-shop",
   "version": "1.0.0",
+  "author": "Dean(Donghyun) Kim",
   "description": "dean-canada-shop",
   "main": "index.js",
   "engine": {
@@ -13,7 +14,6 @@
     "frontend": "npm run start --prefix client",
     "dev": "concurrently \"npm run backend\" \"npm run start --prefix client\""
   },
-  "author": "Dean Kim",
   "dependencies": {
     "async": "^3.2.0",
     "aws-sdk": "^2.913.0",
