@@ -18,7 +18,6 @@ const upload =
 			bucket: 'dean-website/products',
 			acl: 'public-read',
 			key: function (req, file, cb) {
-				// console.log('file', file)
 				cb(null, Date.now() + '.' + file.originalname.split('.').pop());
 			}
 		})

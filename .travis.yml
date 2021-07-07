@@ -1,0 +1,36 @@
+language: generic
+
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build -t deankim0507/deanshop-test -f ./Client/Dockerfile.dev ./Client
+
+script:
+  - docker run -e CI=true deankim0507/deanshop-test npm run test
+
+after_success:
+  - docker build -t deankim0507/deanshop-frontend ./Client
+  - docker build -t deankim0507/deanshop-backend ./server
+  - docker build -t deankim0507/deanshop-nginx ./nginx
+
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_ID" --password-stdin
+
+  - docker push deankim0507/deanshop-frontend
+  - docker push deankim0507/deanshop-backend
+  - docker push deankim0507/deanshop-nginx
+  - echo "Test Success"
+
+# deploy:
+#   provider: elasticbeanstalk
+#   region: "ca-central-1"
+#   app: "dean_myblog"
+#   env: "Deanmyblog-env"
+
+#   bucket_name: "elasticbeanstalk-ca-central-1-522443927346"
+#   bucket_path: "dean_myblog"
+
+#   on:
+#     branch: master
+#   access_key_id: $AWS_ACCESS_KEY
+#   secret_access_key: $AWS_SECRET_ACCESS_KEY

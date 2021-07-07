@@ -11,7 +11,6 @@ import {
   Input,
   Button,
 } from 'antd';
-import { ConsoleSqlOutlined } from "@ant-design/icons";
 
 const formItemLayout = {
   labelCol: {

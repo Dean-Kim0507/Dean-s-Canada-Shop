@@ -268,7 +268,6 @@ router.post('/google', async (req, res) => {
     });
     // get user info from google
     const googleUserInfo = ticket.getPayload();
-
     //Search user info
     User.findOne({ email: googleUserInfo.email }, (err, user) => {
         //if user info doesn't exists

@@ -1,0 +1,33 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "containerDefinitions": [
+        {
+            "name": "deanshop-frontend",
+            "image": "deankim0507/deanshop-frontend",
+            "hostname": "deanshop-frontend",
+            "essential": false,
+            "memory": 128
+        },
+        {
+            "name": "deanshop-backend",
+            "image": "deankim0507/deanshop-backend",
+            "hostname": "deanshop-backend",
+            "essential": false,
+            "memory": 128
+        },
+        {
+            "name": "deanshop-nginx",
+            "image": "deankim0507/deanshop-nginx",
+            "hostname": "deanshop-nginx",
+            "essential": true,
+            "portMappings": [
+                {
+                    "hostPort": 80,
+                    "containerPort": 80
+                }
+            ],
+            "links": ["deanshop-frontend", "deanshop-backend"],
+            "memory": 128
+        }
+    ]
+}

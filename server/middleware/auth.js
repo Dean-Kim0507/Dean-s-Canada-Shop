@@ -1,12 +1,25 @@
 const { User } = require('../models/User');
+const redis = require("redis");
 
+const client = redis.createClient({
+  host: "redis-server",
+  port: 6379
+})
+
+
+client.on('error', err => {
+  console.log('Error ' + err);
+});
 //=================================
-//             User
+//             Auth
 // User Authentication by using JWT or RandomToken(Forgot password link token)
 //=================================
 
 const auth = (req, res, next) => {
-
+  client.set('name', 'dean');
+  client.get('name', (err, reply) => {
+    console.log(reply);
+  });
   //Token from client side(it should be carried by cookie or header)
   let token;
 
