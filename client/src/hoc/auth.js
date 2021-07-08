@@ -12,6 +12,7 @@ export default function (SpecificComponent, option, adminRoute = null) { //put i
         const dispatch = useDispatch();
 
         useEffect(() => {
+            console.log('option: ', option)
             //To know my current status, send Auth request 
             dispatch(auth()).then(response => {
                 //Not Loggined in Status 

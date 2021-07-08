@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const { google } = require('googleapis')
 const moment = require("moment");
+const client = require('../config/redis')
 
 const async = require('async');
 //=================================
@@ -18,27 +19,28 @@ const async = require('async');
 
 // Autenticate a token and then return user's info if it's valid (Receive: Token / Return user's info)
 // Trigger -> authenticate user's jwt on the auth(middleware) ->if it's valid return user's info and refresh token or return err
-router.get("/auth", auth, (req, res) => {
+router.get("/auth", auth(2), (req, res) => {
+
     //Token Refresh
-    req.user.generateToken((err, user) => {
-        if (err) return res.status(400).send(err);
-        res.cookie("w_authExp", user.tokenExp);
-        res
-            .cookie("w_auth", user.token)
-            .status(200)
-            .json({
-                _id: req.user._id,
-                isAdmin: req.user.role === 1 ? false : true,
-                isAuth: true,
-                email: req.user.email,
-                name: req.user.name,
-                lastname: req.user.lastname,
-                role: req.user.role,
-                image: req.user.image,
-                cart: req.user.cart,
-                history: req.user.history,
-            });
-    });
+    // req.user.generateToken((err, user) => {
+    //     if (err) return res.status(400).send(err);
+    //     res.cookie("w_authExp", user.tokenExp);
+    res
+        // .cookie("w_auth", user.token)
+        .status(200)
+        .json({
+            _id: req.user._id,
+            isAdmin: req.user.role === 1 ? false : true,
+            isAuth: true,
+            email: req.user.email,
+            name: req.user.name,
+            lastname: req.user.lastname,
+            role: req.user.role,
+            image: req.user.image,
+            cart: req.user.cart,
+            history: req.user.history,
+        });
+    // });
 });
 
 // Register page
@@ -58,8 +60,8 @@ router.post("/register", (req, res) => {
 
 //Login function (Receive: email and plain password/ Return Success(boolean),usreId and cookie(token, exp))
 //Trigger -> get email ans password -> comapre with using scheman method -> if it's matched, generate a token -> reutrn Success(boolean),usreId and cookie(token, exp)
-router.post("/login", (req, res) => {
-    User.findOne({ email: req.body.email }, (err, user) => {
+router.post("/login", async (req, res) => {
+    await User.findOne({ email: req.body.email }, (err, user) => {
         if (!user)
             return res.json({
                 loginSuccess: false,
@@ -70,8 +72,35 @@ router.post("/login", (req, res) => {
             if (!isMatch)
                 return res.json({ loginSuccess: false, message: "Wrong password" });
 
-            user.generateToken((err, user) => {
+            user.generateToken(async (err, user) => {
                 if (err) return res.status(400).send(err);
+                let cart = user.cart;
+                let history = user.history;
+                //Make objects to be stored to Redis
+                const userData = {
+                    _id: user._id,
+                    isAdmin: user.role === 1 ? false : true,
+                    isAuth: true,
+                    email: user.email,
+                    name: user.name,
+                    lastname: user.lastname,
+                    role: user.role,
+                    image: user.image,
+                }
+                const cartData = {
+                    cart: cart,
+                    history: history,
+                }
+                const tokenData = {
+                    token: user.token,
+                    tokenExp: user.tokenExp,
+                }
+                //Store to Redis
+                client.hmset(
+                    'data', 'userData', JSON.stringify(userData),
+                    'cartData', JSON.stringify(cartData),
+                    'tokenData', JSON.stringify(tokenData)
+                );
                 res.cookie("w_authExp", user.tokenExp);
                 res
                     .cookie("w_auth", user.token)
@@ -86,18 +115,25 @@ router.post("/login", (req, res) => {
 
 // logout (Receive: user ID / return success(boolean))
 // Trigger -> get user id -> delet token and token expire time in the DB -> return success(boolean)
-router.get("/logout", auth, (req, res) => {
+router.get("/logout", auth(1), (req, res) => {
     User.findOneAndUpdate({ _id: req.user._id }, { token: "", tokenExp: "" }, (err, doc) => {
         if (err) return res.json({ success: false, err });
-        return res.status(200).send({
-            success: true
-        });
+        //Delete the Info in Redis
+        client.hdel('data', 'userData', 'cartData', 'tokenData');
+        //Delete the info in Cookie
+        res.cookie("w_authExp", "");
+        res
+            .cookie("w_auth", "")
+            .status(200)
+            .json({
+                success: true
+            });
     });
 });
 
 // add to cart (Receive: product info / Return: User's info with care info)
 // Trigger -> autehnticate User and then get user's  info from middleware -> Check if this user's cart alreday has this product -> if there is count +1 or not, add into cart array
-router.post("/addToCart", auth, (req, res) => {
+router.post("/addToCart", auth(1), (req, res) => {
 
     //Get User's info
     User.findOne({ _id: req.user._id },
@@ -149,7 +185,7 @@ router.post("/addToCart", auth, (req, res) => {
 });
 
 //Remove cart (Receive: Product id (query) /  Return: Product info and user info with a cart )
-router.get('/removeFromCart', auth, (req, res) => {
+router.get('/removeFromCart', auth(1), (req, res) => {
 
     //Delete cart info in a user first
     User.findOneAndUpdate(
@@ -182,7 +218,7 @@ router.get('/removeFromCart', auth, (req, res) => {
 
 // Success Buy (Receive: payment info with product info / Return: suceess(boolean), user's cart info (empty))
 // Trigger -> get payment info with product info -> sotre to the history -> count +1 the number of product's sold and delete all contents in the user'cart-> return empty cart
-router.post('/successBuy', auth, (req, res) => {
+router.post('/successBuy', auth(1), (req, res) => {
 
     //1. Store brief payment info to the user's collection 
     let history = [];
@@ -293,7 +329,6 @@ router.post('/google', async (req, res) => {
                             loginSuccess: true, userId: user._id
                         });
                 });
-
             });
         }
         //if user info exists, just compare password(sub info)
@@ -396,7 +431,7 @@ router.post('/forgot', async (req, res) => {
 })
 
 // Check token and then reset password / receive: token and email, send: success:true
-router.post('/resetpw', auth, async (req, res) => {
+router.post('/resetpw', auth(3), async (req, res) => {
     let user = req.user;
     user.password = req.body.password;
     user.save(function (err, user) {
