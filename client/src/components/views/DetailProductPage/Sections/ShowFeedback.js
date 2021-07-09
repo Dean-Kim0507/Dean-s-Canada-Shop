@@ -1,5 +1,6 @@
 import React from 'react';
 import { Rate, Comment } from 'antd';
+import moment from 'moment'
 
 function ShowFeedback(props) {
 
@@ -10,10 +11,10 @@ function ShowFeedback(props) {
 			return feedback.map((item, index) => (
 				<div key={item.writer._id}>
 					<Comment
-						author={item.author}
+						author={item.writer.name}
 						avatar={item.writer.image}
 						content={item.text}
-						datetime={String(new Date(item.date))}
+						datetime={String(moment(new Date(item.date)))}
 					/>
 					<Rate disabled defaultValue={item.rating} />
 				</div>

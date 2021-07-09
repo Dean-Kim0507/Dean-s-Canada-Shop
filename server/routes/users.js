@@ -4,12 +4,13 @@ const { User } = require("../models/User");
 const { Product } = require("../models/Product");
 const { Payment } = require("../models/Payment");
 const { auth } = require("../middleware/auth");
+const { cache } = require("../middleware/auth");
 const { OAuth2Client } = require('google-auth-library')
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const { google } = require('googleapis')
 const moment = require("moment");
-const client = require('../config/redis')
+const { redis_client, cachingAllData, cachingCartData } = require('../config/redis')
 
 const async = require('async');
 //=================================
@@ -19,7 +20,7 @@ const async = require('async');
 
 // Autenticate a token and then return user's info if it's valid (Receive: Token / Return user's info)
 // Trigger -> authenticate user's jwt on the auth(middleware) ->if it's valid return user's info and refresh token or return err
-router.get("/auth", auth(2), (req, res) => {
+router.get("/auth", cache(2), (req, res) => {
 
     //Token Refresh
     // req.user.generateToken((err, user) => {
@@ -74,33 +75,8 @@ router.post("/login", async (req, res) => {
 
             user.generateToken(async (err, user) => {
                 if (err) return res.status(400).send(err);
-                let cart = user.cart;
-                let history = user.history;
-                //Make objects to be stored to Redis
-                const userData = {
-                    _id: user._id,
-                    isAdmin: user.role === 1 ? false : true,
-                    isAuth: true,
-                    email: user.email,
-                    name: user.name,
-                    lastname: user.lastname,
-                    role: user.role,
-                    image: user.image,
-                }
-                const cartData = {
-                    cart: cart,
-                    history: history,
-                }
-                const tokenData = {
-                    token: user.token,
-                    tokenExp: user.tokenExp,
-                }
-                //Store to Redis
-                client.hmset(
-                    'data', 'userData', JSON.stringify(userData),
-                    'cartData', JSON.stringify(cartData),
-                    'tokenData', JSON.stringify(tokenData)
-                );
+                //Setting cache memory
+                cachingAllData(user);
                 res.cookie("w_authExp", user.tokenExp);
                 res
                     .cookie("w_auth", user.token)
@@ -115,11 +91,11 @@ router.post("/login", async (req, res) => {
 
 // logout (Receive: user ID / return success(boolean))
 // Trigger -> get user id -> delet token and token expire time in the DB -> return success(boolean)
-router.get("/logout", auth(1), (req, res) => {
+router.get("/logout", cache(1), (req, res) => {
     User.findOneAndUpdate({ _id: req.user._id }, { token: "", tokenExp: "" }, (err, doc) => {
         if (err) return res.json({ success: false, err });
         //Delete the Info in Redis
-        client.hdel('data', 'userData', 'cartData', 'tokenData');
+        redis_client.hdel('data', 'userData', 'cartData', 'tokenData');
         //Delete the info in Cookie
         res.cookie("w_authExp", "");
         res
@@ -133,7 +109,7 @@ router.get("/logout", auth(1), (req, res) => {
 
 // add to cart (Receive: product info / Return: User's info with care info)
 // Trigger -> autehnticate User and then get user's  info from middleware -> Check if this user's cart alreday has this product -> if there is count +1 or not, add into cart array
-router.post("/addToCart", auth(1), (req, res) => {
+router.post("/addToCart", cache(1), (req, res) => {
 
     //Get User's info
     User.findOne({ _id: req.user._id },
@@ -157,10 +133,13 @@ router.post("/addToCart", auth(1), (req, res) => {
                     { new: true }, // To get updated user, if it's not, give false
                     (err, userInfo) => {
                         if (err) return res.status(200).json({ success: false, err })
+                        //Setting cache memory
+                        cachingCartData(userInfo);
                         res.status(200).send(userInfo.cart)
                     }
                 )
             }
+
             //if there is not product,
             else {
                 User.findOneAndUpdate(
@@ -177,6 +156,8 @@ router.post("/addToCart", auth(1), (req, res) => {
                     { new: true },
                     (err, userInfo) => {
                         if (err) return res.status(400).json({ success: false, err })
+                        //Reset Cache memory
+                        cachingCartData(userInfo);
                         res.status(200).send(userInfo.cart)
                     }
                 )
@@ -185,7 +166,7 @@ router.post("/addToCart", auth(1), (req, res) => {
 });
 
 //Remove cart (Receive: Product id (query) /  Return: Product info and user info with a cart )
-router.get('/removeFromCart', auth(1), (req, res) => {
+router.get('/removeFromCart', cache(1), (req, res) => {
 
     //Delete cart info in a user first
     User.findOneAndUpdate(
@@ -202,12 +183,15 @@ router.get('/removeFromCart', auth(1), (req, res) => {
             let array = cart.map(item => {
                 return item.id
             })
-
+            //Setting cache memory
+            cachingCartData(userInfo);
             //Get and send a product info with user's cart
             Product.find({ _id: { $in: array } })
                 .populate('writer')
                 .exec((err, productInfo) => {
+
                     return res.status(200).json({
+                        success: true,
                         productInfo,
                         cart
                     })
@@ -218,7 +202,7 @@ router.get('/removeFromCart', auth(1), (req, res) => {
 
 // Success Buy (Receive: payment info with product info / Return: suceess(boolean), user's cart info (empty))
 // Trigger -> get payment info with product info -> sotre to the history -> count +1 the number of product's sold and delete all contents in the user'cart-> return empty cart
-router.post('/successBuy', auth(1), (req, res) => {
+router.post('/successBuy', cache(1), (req, res) => {
 
     //1. Store brief payment info to the user's collection 
     let history = [];
@@ -252,7 +236,8 @@ router.post('/successBuy', auth(1), (req, res) => {
         { new: true },
         (err, user) => {
             if (err) return res.json({ success: false, err })
-
+            //Setting cache memory
+            cachingCartData(user);
             //store transactionData info to the payment  
             const payment = new Payment(transactionData)
             payment.save((err, doc) => {
@@ -279,6 +264,7 @@ router.post('/successBuy', auth(1), (req, res) => {
                     )
                 }, (err) => {
                     if (err) return res.status(400).json({ success: false, err })
+
                     res.status(200).json({
                         success: true,
                         cart: user.cart,
@@ -321,6 +307,8 @@ router.post('/google', async (req, res) => {
                 if (err) return res.json({ success: false, err });
                 newUser.generateToken((err, user) => {
                     if (err) return res.status(400).send(err);
+                    //Setting light user data to cache memory
+                    cachingAllData(user);
                     res.cookie("w_authExp", user.tokenExp);
                     res
                         .cookie("w_auth", user.token)
@@ -339,6 +327,8 @@ router.post('/google', async (req, res) => {
 
                 user.generateToken((err, user) => {
                     if (err) return res.status(400).send(err);
+                    //Setting light user data to cache memory
+                    cachingAllData(user);
                     res.cookie("w_authExp", user.tokenExp);
                     res
                         .cookie("w_auth", user.token)
@@ -431,7 +421,7 @@ router.post('/forgot', async (req, res) => {
 })
 
 // Check token and then reset password / receive: token and email, send: success:true
-router.post('/resetpw', auth(3), async (req, res) => {
+router.post('/resetpw', auth, async (req, res) => {
     let user = req.user;
     user.password = req.body.password;
     user.save(function (err, user) {

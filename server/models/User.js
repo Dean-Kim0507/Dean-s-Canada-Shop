@@ -96,8 +96,8 @@ userSchema.methods.comparePassword = function (plainPassword, cb) {
 // Trigger -> just generate jwt token and store to the DB -> reutrn call back with user info
 userSchema.methods.generateToken = function (cb) {
     let user = this;
-    let oneHour = (moment().add(1, 'hour').valueOf()) / 1000; //expired time 1 hour
-    let token = jwt.sign({ _id: user._id.toHexString(), exp: oneHour }, process.env.JWT_SECRET)
+    let oneHour = (moment().add(10, 's').valueOf())  //expired time 1 hour
+    let token = jwt.sign({ _id: user._id.toHexString(), exp: (oneHour / 1000) }, process.env.JWT_SECRET)
 
     user.tokenExp = oneHour;
     user.token = token;

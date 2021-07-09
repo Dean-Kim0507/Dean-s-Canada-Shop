@@ -4,7 +4,7 @@ const router = express.Router();
 const multer = require('multer');
 const { Product } = require("../models/Product");
 const { User } = require("../models/User");
-const { auth } = require('../middleware/auth');
+const { cache } = require('../middleware/auth');
 const multerS3 = require('multer-s3');
 const aws = require('aws-sdk');
 const { upload, deleteImg } = require('../middleware/multer')
@@ -58,9 +58,10 @@ router.post('/deleteimg', deleteImg, (req, res) => {
 
 //Upload Product (Receive: Product info / Return: success true)
 // Store produt info to the DB or Push feedback to the exist product collections
-router.post('/', auth, (req, res) => {
+router.post('/', cache(1), (req, res) => {
 
     let type = req.body.type;
+    //Upload New Product
     if (type == 'NewProduct') {
         //Just Put all info into the DB
         const product = new Product(req.body)
@@ -70,12 +71,13 @@ router.post('/', auth, (req, res) => {
             return res.status(200).json({ success: true })
         })
     } else {
+        //Upload feedback about a product
         Product.findOneAndUpdate(
             { _id: req.body.productId },
             {
                 $push: {
                     feedback: {
-                        writer: req.user,
+                        writer: { name: req.user.name, image: req.user.image },
                         rating: req.body.stars,
                         text: req.body.feedback,
                         date: Date.now()

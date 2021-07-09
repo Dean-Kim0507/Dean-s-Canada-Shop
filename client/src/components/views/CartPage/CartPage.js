@@ -47,8 +47,9 @@ function CartPage(props) {
             .then(response => {
                 if (response.payload.productInfo.length <= 0) {
                     setShowTotal(false)
-                    message.success('Delete Success');
                 }
+                console.log('response.payload.success: ', response.payload.success)
+                if (response.payload.success) message.success('Delete Success');
                 else message.error('Delete Fail')
             })
     }
