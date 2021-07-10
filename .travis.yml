@@ -4,13 +4,13 @@ sudo: required
 services:
   - docker
 before_install:
-  - docker build -t deankim0507/deanshop-test -f ./Client/Dockerfile.dev ./Client
+  - docker build -t deankim0507/deanshop-test -f ./client/Dockerfile.dev ./client
 
 script:
   - docker run -e CI=true deankim0507/deanshop-test npm run test
 
 after_success:
-  - docker build -t deankim0507/deanshop-frontend ./Client
+  - docker build -t deankim0507/deanshop-frontend ./client
   - docker build -t deankim0507/deanshop-backend ./server
   - docker build -t deankim0507/deanshop-nginx ./nginx
 
@@ -24,11 +24,11 @@ after_success:
 # deploy:
 #   provider: elasticbeanstalk
 #   region: "ca-central-1"
-#   app: "dean_myblog"
-#   env: "Deanmyblog-env"
+#   app: "deanshop"
+#   env: "Deanshop-env"
 
 #   bucket_name: "elasticbeanstalk-ca-central-1-522443927346"
-#   bucket_path: "dean_myblog"
+#   bucket_path: "deanshop"
 
 #   on:
 #     branch: master

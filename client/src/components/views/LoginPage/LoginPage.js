@@ -176,6 +176,7 @@ function LoginPage(props) {
               onFailure={failHandler}
               cookiePolicy={'single_host_origin'}
             />
+            <p>If there is an error on Google login, click <a target="_blank" rel="noopener noreferrer" href="https://support.google.com/accounts/answer/32050">here</a></p>
           </div>
         );
       }}
