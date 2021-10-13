@@ -1,0 +1,36 @@
+version: "3"
+services:
+  deanshop-frontend:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./client
+    volumes:
+      - /deanshop/node_modules
+      - ./client:/deanshop
+    stdin_open: true
+    environment: 
+     - CHOKIDAR_USEPOLLING=true
+
+  deanshop-nginx: 
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./nginx
+    ports: 
+      - "3000:80"
+  redis-server:
+    image: "redis"      
+  deanshop-backend:
+    restart: always
+    build: 
+      dockerfile: Dockerfile.dev
+      context: ./server
+    container_name: deanshop_backend
+    volumes:
+      - /deanshop/node_modules
+      - ./server:/deanshop
+    environment:  
+     - CHOKIDAR_USEPOLLING=true
+  
+
+

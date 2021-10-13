@@ -1,0 +1,48 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "containerDefinitions": [
+        {
+            "name": "deanshop-frontend",
+            "image": "deankim0507/deanshop-frontend",
+            "hostname": "deanshop-frontend",
+            "essential": false,
+            "memory": 128
+        },
+        {
+            "name": "redis-server",
+            "image": "deankim0507/redis-server",
+            "hostname": "redis-server",
+            "essential": true,
+            "portMappings": [
+                {
+                    "hostPort": 6379,
+                    "containerPort": 6379
+                }
+            ],
+            "memory": 128
+        },
+        {
+            "name": "deanshop-backend",
+            "image": "deankim0507/deanshop-backend",
+            "hostname": "deanshop-backend",
+            "essential": false,
+            "links": ["redis-server"],
+            "memory": 128
+        },
+        {
+            "name": "deanshop-nginx",
+            "image": "deankim0507/deanshop-nginx",
+            "hostname": "deanshop-nginx",
+            "essential": true,
+            "portMappings": [
+                {
+                    "hostPort": 80,
+                    "containerPort": 80
+                }
+            ],
+            "links": ["deanshop-frontend", "deanshop-backend", "redis-server"],
+            "memory": 128
+        }
+       
+    ]
+}

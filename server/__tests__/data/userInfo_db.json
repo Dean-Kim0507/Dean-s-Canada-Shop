@@ -1,0 +1,15 @@
+{
+	"_id":{"$oid":"607fa09cafaece3deced9366"},
+	"role":{"$numberInt":"0"},
+	"email":"test@test.com",
+	"password":"password",
+	"name":"test",
+	"image":"test",
+	"__v":{"$numberInt":"0"},
+	"token":"test",
+	"tokenExp":{"$numberDouble":"100.0"},
+	"cart":[],
+	"history":[],
+	"recentlyViewed":[],
+	"oauth":false
+}

@@ -1,0 +1,11 @@
+{
+	"_id":{"$oid":"607fa09cafaece3deced9366"},
+	"isAdmin":true,
+	"isAuth": true,
+	"email":"test@test.com",
+	"name":"test",
+	"role":{"$numberInt":"0"},
+	"image":"test",
+	"cart":[],
+	"history":[]
+}

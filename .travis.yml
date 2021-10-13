@@ -1,0 +1,39 @@
+language: generic
+
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build --build-arg REDIS_HOST="$REDIS_HOST" --build-arg MONGO_URI="$MONGO_URI" -t deankim0507/redis-server ./redis
+  - docker build -t deankim0507/deanshop-test -f ./server/Dockerfile ./server
+
+script:
+  - docker run -e CI=true deankim0507/deanshop-test npm run test
+
+after_success:
+  - docker build --build-arg REACT_APP_SANDBOX="$REACT_APP_SANDBOX" --build-arg REACT_APP_GOOGLE_CLIENT_ID="$REACT_APP_GOOGLE_CLIENT_ID" -t deankim0507/deanshop-frontend ./client
+  - docker build -t deankim0507/redis-server ./redis
+  - docker build -t deankim0507/deanshop-backend ./server
+  - docker build -t deankim0507/deanshop-nginx ./nginx
+
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_ID" --password-stdin
+
+  - docker push deankim0507/deanshop-frontend
+  - docker push deankim0507/redis-server
+  - docker push deankim0507/deanshop-backend
+  - docker push deankim0507/deanshop-nginx
+  - echo "Test Success"
+
+deploy:
+  provider: elasticbeanstalk
+  region: "ca-central-1"
+  app: "deanshop"
+  env: "Deanshop-env"
+
+  bucket_name: "elasticbeanstalk-ca-central-1-522443927346"
+  bucket_path: "deanshop"
+
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
