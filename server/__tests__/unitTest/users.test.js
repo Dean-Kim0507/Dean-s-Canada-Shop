@@ -41,7 +41,8 @@ describe("Test the auth in the user controllers", () => {
 	})
 	//Can the auth handle errors?
 	it("should handle errors", async () => {
-		const errMsg = "Cannot read property '_id' of undefined"
+		// const errMsg = "Cannot read property '_id' of undefined"
+		const errMsg = "Cannot read properties of undefined (reading '_id')"
 		usersCon.auth(req, res, next);
 		expect(next).toBeCalledWith(errMsg);
 	})
