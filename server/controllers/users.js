@@ -59,32 +59,34 @@ exports.register = (req, res, next) => {
 //Login function (Receive: email and plain password/ Return Success(boolean),usreId and cookie(token, exp))
 //Trigger -> get email ans password -> comapre with using scheman method -> if it's matched, generate a token -> reutrn Success(boolean),usreId and cookie(token, exp)
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
+	
 	await User.findOne({ email: req.body.email }, (err, user) => {
-		if (!user)
-			return res.json({
-				loginSuccess: false,
-				message: "Auth failed, email not found"
-			});
+			if (!user)
+				return res.json({
+					loginSuccess: false,
+					message: "Auth failed, email not found"
+				});
 
-		user.comparePassword(req.body.password, (err, isMatch) => {
-			if (!isMatch)
-				return res.json({ loginSuccess: false, message: "Wrong password" });
+			user.comparePassword(req.body.password, (err, isMatch) => {
+				if (!isMatch)
+					return res.json({ loginSuccess: false, message: "Wrong password" });
 
-			user.generateToken(async (err, user) => {
-				if (err) return res.status(400).send(err);
-				//Setting cache memory
-				cachingAllData(user);
-				res.cookie("w_authExp", user.tokenExp);
-				res
-					.cookie("w_auth", user.token)
-					.status(200)
-					.json({
-						loginSuccess: true, userId: user._id
-					});
+				user.generateToken(async (err, user) => {
+					if (err) return res.status(400).send(err);
+					//Setting cache memory
+					cachingAllData(user);
+					res.cookie("w_authExp", user.tokenExp);
+					res
+						.cookie("w_auth", user.token)
+						.status(200)
+						.json({
+							loginSuccess: true, userId: user._id
+						});
+				});
 			});
 		});
-	});
+	
 }
 
 // logout (Receive: user ID / return success(boolean))

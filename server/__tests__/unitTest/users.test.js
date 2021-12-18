@@ -1,17 +1,19 @@
 const usersCon = require('../../controllers/users');
 const userModel = require('../../models/User');
 const httpMocks = require('node-mocks-http');
-const redis = require("redis-mock"), client = redis.createClient();
+// const redis = require("redis-mock"), client = redis.createClient();
 const userInfo_db = require('../data/userInfo_db.json')
 const userInfo_back = require('../data/userInfo_back.json')
 const userInfo_login = require('../data/userInfo_login.json')
 const redisFunc = require('../../config/redis')
 
+jest.mock('redis', () => jest.requireActual('redis-mock'));
 //Model functions mocking
 userModel.save = jest.fn();
 userModel.findOne = jest.fn();
 userModel.comparePassword = jest.fn();
 userModel.generateToken = jest.fn();
+userModel.findOneAndUpdate = jest.fn();
 
 let req, res, next;
 
@@ -78,23 +80,46 @@ describe("Login Test", () => {
 		expect(typeof usersCon.login).toBe("function")
 	})
 
-	// it("should call user.findOne()", async () => {
+	// it("should call user.findOne()", async (done) => {
 	// 	req.body = userInfo_login;
-	// 	await usersCon.login(req, res);
+	// 	await usersCon.login(req, res, next);
 	// 	expect(userModel.findOne).toHaveBeenCalledWith({ email: req.body.email });
 	// })
 
-	it("should return json body and reponse code 200", async () => {
-		// req.body = userInfo_back
-		// const returnPromise1 = Promise.resolve(null, userInfo_back)
-		// const returnPromise2 = Promise.resolve(null, true);
-		// const returnPromise3 = Promise.resolve(null, userInfo_back)
-		// await userModel.findOne.mockReturnValue(returnPromise1);
-		// await userModel.comparePassword.mockReturnValue(returnPromise2);
-		// await userModel.generateToken.mockReturnValue(returnPromise3);
-		// await usersCon.login(req, res);
-		// expect(res.statusCode).toBe(200);
-		// expect(res._getJSONData()).toStrictEqual(userInfo_db);
-		// expect(res._isEndCalled()).toBeTruthy();
+	// it("should return json body and reponse code 200", async () => {
+	// 	req.body = userInfo_db
+	// 	await userModel.findOne.mockReturnValue(userInfo_db);
+	// 	await userModel.comparePassword.mockReturnValue(true);
+	// 	await userModel.generateToken.mockReturnValue(userInfo_db);
+	// 	await client.hmset(userInfo_db)
+	// 	await usersCon.login(req, res);
+	// 	expect(res.statusCode).toBe(200);
+	// 	expect(res._getJSONData()).toStrictEqual(userInfo_db);
+	// 	expect(res._isEndCalled()).toBeTruthy();
+	// })
+})
+
+describe("Logout Test", () => {
+	it("should have a login funtcion", async () => {
+		expect(typeof usersCon.logout).toBe("function")
 	})
+
+	it("should call user.findOneAndUpdate()", async () => {
+		req.body = userInfo_db;
+		userModel.findOneAndUpdate({ _id: req.body._id })
+		await usersCon.login(req, res);
+		expect(userModel.findOneAndUpdate).toHaveBeenCalledWith({ _id: req.body._id });
+	})
+
+	// it("should return json body and reponse code 200", async () => {
+	// 	req.body = userInfo_db
+	// 	await userModel.findOne.mockReturnValue(userInfo_db);
+	// 	await userModel.comparePassword.mockReturnValue(true);
+	// 	await userModel.generateToken.mockReturnValue(userInfo_db);
+	// 	await client.hmset(userInfo_db)
+	// 	await usersCon.login(req, res);
+	// 	expect(res.statusCode).toBe(200);
+	// 	expect(res._getJSONData()).toStrictEqual(userInfo_db);
+	// 	expect(res._isEndCalled()).toBeTruthy();
+	// })
 })

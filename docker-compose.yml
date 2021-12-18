@@ -8,29 +8,27 @@ services:
       - /deanshop/node_modules
       - ./client:/deanshop
     stdin_open: true
-    environment: 
-     - CHOKIDAR_USEPOLLING=true
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_OPTIONS=--openssl-legacy-provider
 
-  deanshop-nginx: 
+  deanshop-nginx:
     restart: always
     build:
       dockerfile: Dockerfile
       context: ./nginx
-    ports: 
+    ports:
       - "3000:80"
   redis-server:
-    image: "redis"      
+    image: "redis"
   deanshop-backend:
     restart: always
-    build: 
+    build:
       dockerfile: Dockerfile.dev
       context: ./server
     container_name: deanshop_backend
     volumes:
       - /deanshop/node_modules
       - ./server:/deanshop
-    environment:  
-     - CHOKIDAR_USEPOLLING=true
-  
-
-
+    environment:
+      - CHOKIDAR_USEPOLLING=true
